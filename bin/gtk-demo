@@ -24,13 +24,18 @@ vbox.show()
 canvas.set_size_request(256, 224)
 vbox.pack_start(canvas)
 canvas.show()
-
 window.show()
 
-def iter_pixel_bytes(data, pitch, line, height):
-	for y in range(height):
+drawable = canvas.window
+gc = canvas.get_style().fg_gc[gtk.STATE_NORMAL]
+
+framebuffer = array.array('B', [0] * (256*224*3))
+
+def paint_frame(data, pitch, line, width, height):
+	offset = 0
+	for y in xrange(height):
 		line_width = line[y]
-		for x in range(line_width):
+		for x in xrange(line_width):
 			# pitch is in bytes, not pixels! Pity there's no good way to deal
 			# with that.
 			pixel_data = data[(pitch/2) * y + x]
@@ -38,19 +43,12 @@ def iter_pixel_bytes(data, pitch, line, height):
 			g = (pixel_data & 0x03e0) >> 2
 			b = (pixel_data & 0x7c00) >> 7
 
-			yield r | (r >> 5)
-			yield g | (g >> 5)
-			yield b | (b >> 5)
-
-def paint_frame(data, pitch, line, width, height):
-	drawable = canvas.window
-	gc = canvas.get_style().fg_gc[gtk.STATE_NORMAL]
-	colormap = gc.get_colormap()
-
-	rgb_data = array.array('B', iter_pixel_bytes(data, pitch, line, height))
+			framebuffer[offset] = r | (r >> 5); offset += 1
+			framebuffer[offset] = g | (g >> 5); offset += 1
+			framebuffer[offset] = b | (b >> 5); offset += 1
 
 	drawable.draw_rgb_image(gc, 0,0, 256, 224, gtk.gdk.RGB_DITHER_NONE,
-			rgb_data, -1)
+			framebuffer, -1)
 
 core.set_video_refresh(paint_frame)
 
