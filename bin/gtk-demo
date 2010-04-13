@@ -34,18 +34,18 @@ def paint_frame(data, pitch, line, width, height):
 
 	for y in range(height):
 		line_width = line[y]
-		#print y, line_width
 		for x in range(line_width):
-			pixel_data = data[pitch * y + x]
-			b = (pixel_data & 0x001f) << 11
-			g = (pixel_data & 0x03e0) << 9
-			r = (pixel_data & 0x7c00) << 1
+			# pitch is in bytes, not pixels! Pity there's no good way to deal
+			# with that.
+			pixel_data = data[(pitch/2) * y + x]
+			r = (pixel_data & 0x001f) << 11
+			g = (pixel_data & 0x03e0) << 6
+			b = (pixel_data & 0x7c00) << 1
 
 			c = colormap.alloc_color(r, g, b)
 			gc.set_foreground(c)
 			gc.set_background(c)
 			drawable.draw_point(gc, x, y)
-
 
 core.set_video_refresh(paint_frame)
 
