@@ -33,6 +33,19 @@ framebuffer = array.array('B', [0] * (512*480*3))
 framecount = 0.0
 start = time.clock()
 
+def decode_pixel(pixel):
+	r = (pixel & 0x001f) << 3
+	g = (pixel & 0x03e0) >> 2
+	b = (pixel & 0x7c00) >> 7
+
+	return array.array('B', [
+			r | (r >> 5),
+			g | (g >> 5),
+			b | (b >> 5),
+		])
+
+rgb_lookup = [decode_pixel(p) for p in xrange(32768)]
+
 def paint_frame(data, width, height, hires, interlace, overscan, pitch):
 	global framecount, start
 
@@ -48,13 +61,8 @@ def paint_frame(data, width, height, hires, interlace, overscan, pitch):
 	for y in xrange(height):
 		for x in xrange(width):
 			pixel_data = data[pitch * y + x]
-			r = (pixel_data & 0x001f) << 3
-			g = (pixel_data & 0x03e0) >> 2
-			b = (pixel_data & 0x7c00) >> 7
-
-			framebuffer[offset] = r | (r >> 5); offset += 1
-			framebuffer[offset] = g | (g >> 5); offset += 1
-			framebuffer[offset] = b | (b >> 5); offset += 1
+			framebuffer[offset:offset+3] = rgb_lookup[pixel_data]
+			offset += 3
 
 	drawable.draw_rgb_image(gc, 0,0, 256, 224, gtk.gdk.RGB_DITHER_NONE,
 			framebuffer, -1)
