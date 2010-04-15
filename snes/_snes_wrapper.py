@@ -7,8 +7,8 @@ import ctypes, atexit
 data_p = ctypes.POINTER(ctypes.c_ubyte)
 pixel_p = ctypes.POINTER(ctypes.c_uint16)
 
-video_refresh_cb_t = ctypes.CFUNCTYPE(None, pixel_p, ctypes.c_uint, 
-		ctypes.POINTER(ctypes.c_uint), ctypes.c_uint, ctypes.c_uint)
+video_refresh_cb_t = ctypes.CFUNCTYPE(None, ctypes.POINTER(ctypes.c_uint16),
+		ctypes.c_uint, ctypes.c_uint)
 
 audio_sample_cb_t = ctypes.CFUNCTYPE(None, ctypes.c_uint16, ctypes.c_uint16)
 
@@ -24,7 +24,6 @@ set_input_poll = None
 set_input_state = None
 unload = None
 run = None
-runtosave = None
 set_controller_port_device = None
 serialize_size = None
 serialize = None
@@ -36,7 +35,7 @@ load_cartridge_normal = None
 # When we're given a library path, set everything up.
 def init(libsnes_path):
 	global init, set_video_refresh, set_audio_sample
-	global set_input_poll, set_input_state, unload, run, runtosave
+	global set_input_poll, set_input_state, unload, run
 	global set_controller_port_device, serialize_size, serialize
 	global cheat_reset, cheat_set, load_cartridge_normal
 
@@ -75,10 +74,6 @@ def init(libsnes_path):
 	run = libsnes.snes_run
 	run.restype = None
 	run.argtypes = []
-
-	runtosave = libsnes.snes_runtosave
-	runtosave.restype = None
-	runtosave.argtypes = []
 
 	set_controller_port_device = libsnes.snes_set_controller_port_device
 	set_controller_port_device.restype = None

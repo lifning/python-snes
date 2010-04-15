@@ -20,7 +20,16 @@ _input_state_wrapper = None
 
 def set_video_refresh(callback):
 	global _video_refresh_wrapper
-	_video_refresh_wrapper = W.video_refresh_cb_t(callback)
+
+	def wrapped_callback(data, width, height):
+		hires = (width == 512)
+		interlace = (height == 448 or height == 478)
+		overscan = (height == 239 or height == 478)
+		pitch = 512 if interlace else 1024 # in pixels
+
+		callback(data, width, height, hires, interlace, overscan, pitch)
+
+	_video_refresh_wrapper = W.video_refresh_cb_t(wrapped_callback)
 	W.set_video_refresh(_video_refresh_wrapper)
 
 def set_audio_sample(callback):

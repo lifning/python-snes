@@ -29,16 +29,13 @@ window.show()
 drawable = canvas.window
 gc = canvas.get_style().fg_gc[gtk.STATE_NORMAL]
 
-framebuffer = array.array('B', [0] * (256*224*3))
+framebuffer = array.array('B', [0] * (512*480*3))
 
-def paint_frame(data, pitch, line, width, height):
+def paint_frame(data, width, height, hires, interlace, overscan, pitch):
 	offset = 0
 	for y in xrange(height):
-		line_width = line[y]
-		for x in xrange(line_width):
-			# pitch is in bytes, not pixels! Pity there's no good way to deal
-			# with that.
-			pixel_data = data[(pitch/2) * y + x]
+		for x in xrange(width):
+			pixel_data = data[pitch * y + x]
 			r = (pixel_data & 0x001f) << 3
 			g = (pixel_data & 0x03e0) >> 2
 			b = (pixel_data & 0x7c00) >> 7
