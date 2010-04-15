@@ -17,20 +17,31 @@ input_poll_cb_t = ctypes.CFUNCTYPE(None)
 input_state_cb_t = ctypes.CFUNCTYPE(ctypes.c_int16, ctypes.c_bool,
 		ctypes.c_uint, ctypes.c_uint, ctypes.c_uint)
 
+def DUMMY(*args):
+	raise RuntimeError("You must call snes.core.init() first!")
+
 # At the first import, we haven't loaded any functions.
-set_video_refresh = None
-set_audio_sample = None
-set_input_poll = None
-set_input_state = None
-unload = None
-run = None
-set_controller_port_device = None
-serialize_size = None
-serialize = None
-unserialize = None
-cheat_reset = None
-cheat_set = None
-load_cartridge_normal = None
+set_video_refresh = DUMMY
+set_audio_sample = DUMMY
+set_input_poll = DUMMY
+set_input_state = DUMMY
+set_controller_port_device = DUMMY
+power = DUMMY
+reset = DUMMY
+run = DUMMY
+unload = DUMMY
+serialize_size = DUMMY
+serialize = DUMMY
+unserialize = DUMMY
+cheat_reset = DUMMY
+cheat_set = DUMMY
+load_cartridge_normal = DUMMY
+load_cartridge_bsx_slotted = DUMMY
+load_cartridge_bsx = DUMMY
+load_cartridge_sufami_turbo = DUMMY
+load_cartridge_super_game_boy = DUMMY
+get_memory_data = DUMMY
+get_memory_size = DUMMY
 
 # When we're given a library path, set everything up.
 def init(libsnes_path):
