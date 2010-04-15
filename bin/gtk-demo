@@ -30,8 +30,20 @@ drawable = canvas.window
 gc = canvas.get_style().fg_gc[gtk.STATE_NORMAL]
 
 framebuffer = array.array('B', [0] * (512*480*3))
+framecount = 0.0
+start = time.clock()
 
 def paint_frame(data, width, height, hires, interlace, overscan, pitch):
+	global framecount, start
+
+	now = time.clock()
+	if now > start + 1:
+		fps = framecount / (now - start)
+		sys.stdout.write("FPS: %0.1f\r" % fps)
+		sys.stdout.flush()
+		framecount = 0
+		start = now
+
 	offset = 0
 	for y in xrange(height):
 		for x in xrange(width):
@@ -46,6 +58,9 @@ def paint_frame(data, width, height, hires, interlace, overscan, pitch):
 
 	drawable.draw_rgb_image(gc, 0,0, 256, 224, gtk.gdk.RGB_DITHER_NONE,
 			framebuffer, -1)
+
+	framecount += 1
+
 
 core.set_video_refresh(paint_frame)
 
