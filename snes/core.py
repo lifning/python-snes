@@ -288,17 +288,17 @@ def unserialize(state):
 		raise SNESException("problem in unserialize")
 
 # This keeps track of which cheats the user wants to apply to this game.
-loaded_cheats = {}
+_loaded_cheats = {}
 
 def _reload_cheats():
 	"""
 	Internal method.
 
-	Reloads cheats in the emulated SNES from the loaded_cheats variable.
+	Reloads cheats in the emulated SNES from the _loaded_cheats variable.
 	"""
 	W.cheat_reset()
 
-	for index, (code, enabled) in loaded_cheats.items():
+	for index, (code, enabled) in _loaded_cheats.items():
 		W.cheat_set(index, enabled, code)
 
 def cheat_add(index, code, enabled=True):
@@ -314,7 +314,7 @@ def cheat_add(index, code, enabled=True):
 	"enabled" must be a boolean. It determines whether the cheat code is
 	enabled or not.
 	"""
-	loaded_cheats[index] = (code, enabled)
+	_loaded_cheats[index] = (code, enabled)
 	_reload_cheats()
 
 def cheat_remove(index):
@@ -323,7 +323,7 @@ def cheat_remove(index):
 
 	"index" must be an integer previously passed to cheat_add.
 	"""
-	del loaded_cheats[index]
+	del _loaded_cheats[index]
 	_reload_cheats()
 
 def cheat_set_enabled(index, enabled):
@@ -335,8 +335,8 @@ def cheat_set_enabled(index, enabled):
 	"enabled" must be a boolean. It determines whether the cheat code is
 	enabled or not.
 	"""
-	code, _ = loaded_cheats[index]
-	loaded_cheats[index] = (code, enabled)
+	code, _ = _loaded_cheats[index]
+	_loaded_cheats[index] = (code, enabled)
 	_reload_cheats()
 
 def cheat_is_enabled(index):
@@ -345,7 +345,7 @@ def cheat_is_enabled(index):
 
 	"index" must be an integer previously passed to cheat_add.
 	"""
-	_, enabled = loaded_cheats[index]
+	_, enabled = _loaded_cheats[index]
 	return enabled
 
 def load_cartridge_normal(data, sram=None, rtc=None, mapping=None):
