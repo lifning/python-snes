@@ -102,18 +102,15 @@ def set_input_state(callback):
 	_input_state_wrapper = W.input_state_cb_t(callback)
 	W.set_input_state(_input_state_wrapper)
 
+# Because libsnes crashes if somebody calls "run" without setting up
+# callbacks, let's set them to dummy functions by default.
+set_video_refresh(lambda *args: None)
+set_audio_sample(lambda *args: None)
+set_input_poll(lambda: None)
+set_input_state(lambda *args: 0)
+
 def load_cartridge_normal(data, mapping=None):
 	W.load_cartridge_normal(mapping, ctypes.cast(data, W.data_p), len(data))
-
-def init(libsnes_path):
-	W.init(libsnes_path)
-
-	# Because libsnes crashes if somebody calls "run" without setting up
-	# callbacks, let's set them to dummy functions by default.
-	set_video_refresh(lambda *args: None)
-	set_audio_sample(lambda *args: None)
-	set_input_poll(lambda: None)
-	set_input_state(lambda *args: 0)
 
 def run():
 	W.run()

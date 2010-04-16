@@ -2,10 +2,7 @@
 import sys, time
 from snes import core
 
-print sys.argv
-libsnes_path, game_path = sys.argv[1:]
-
-core.init(libsnes_path)
+game_path = sys.argv[1]
 
 frame_counter = 0
 sample_counter = 0

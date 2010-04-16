@@ -5,9 +5,7 @@ pygtk.require("2.0")
 import gtk, gobject
 from snes import core
 
-libsnes_path, game_path = sys.argv[1:]
-
-core.init(libsnes_path)
+game_path = sys.argv[1]
 
 with open(game_path, "rb") as handle:
 	core.load_cartridge_normal(handle.read())
