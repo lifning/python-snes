@@ -27,7 +27,6 @@ window.show()
 drawable = canvas.window
 gc = canvas.get_style().fg_gc[gtk.STATE_NORMAL]
 
-framebuffer = array.array('B', [0] * (512*480*3))
 framecount = 0.0
 start = time.clock()
 
@@ -36,11 +35,13 @@ def decode_pixel(pixel):
 	g = (pixel & 0x03e0) >> 2
 	b = (pixel & 0x7c00) >> 7
 
-	return array.array('B', [
-			r | (r >> 5),
-			g | (g >> 5),
-			b | (b >> 5),
-		])
+	# FIXME: For speed we're using ints to hold XBGR8888 data, assuming that
+	# they're 32-bit and little-endian. This is... less than portable.
+	return (
+			(r | (r >> 5))       |
+			(g | (g >> 5)) << 8  |
+			(b | (b >> 5)) << 16
+		)
 
 rgb_lookup = [decode_pixel(p) for p in xrange(32768)]
 
@@ -55,15 +56,12 @@ def paint_frame(data, width, height, hires, interlace, overscan, pitch):
 		framecount = 0
 		start = now
 
-	offset = 0
-	for y in xrange(height):
-		for x in xrange(width):
-			pixel_data = data[pitch * y + x]
-			framebuffer[offset:offset+3] = rgb_lookup[pixel_data]
-			offset += 3
-
-	drawable.draw_rgb_image(gc, 0,0, 256, 224, gtk.gdk.RGB_DITHER_NONE,
-			framebuffer, -1)
+	drawable.draw_rgb_32_image(gc, 0,0, width, height, gtk.gdk.RGB_DITHER_NONE,
+			array.array('i', [
+				rgb_lookup[data[pitch * y + x]]
+				for y in xrange(height)
+				for x in xrange(width)
+			]), -1)
 
 	framecount += 1
 
