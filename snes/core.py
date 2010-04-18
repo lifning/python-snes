@@ -1,5 +1,46 @@
 """
-A Pythonic layer around bsnes' libsnes API.
+A Pythonic interface to libsnes functionality.
+
+libsnes only allows one emulated SNES per process, therefore the interface to
+libsnes is a module rather than a class. The usual use of this module runs
+something like this:
+
+	1. Call the set_*_cb methods to set up the callbacks that will be notified
+	   when the emulated snes has produced a video frame, audio sample, or
+	   needs controller input.
+	2. Call one of the load_cartridge_* methods to give the emulated SNES
+	   a cartridge image to run.
+	3. Call run() fifty (PAL) or sixty (NTSC) times a second to cause emulation
+	   to occur. Process the output and supply input as the registered
+	   callbacks are called.
+	4. Call unload() to free the resources associated with the loaded
+	   cartridge, and return the contents of the cartridge's non-volatile
+	   storage for use with the next session.
+	5. If you want to switch to a different cartridge, call a load_cartridge_*
+	   method again, and go to step 3.
+
+Constants defined in this module:
+
+	MEMORY_* constants represent the diffent types of non-volatile storage
+	a SNES cartridge can use. Not every cartridge uses every kind of storage,
+	some cartridges use no storage at all. These constants are useful for
+	indexing into the list returned from unload().
+
+	VALID_MEMORY_TYPES is a list of all the valid memory type constants.
+
+	PORT_* constants represent the different ports to which controllers can be
+	connected on the SNES. These should be passed to
+	set_controller_port_device() and will be given to the callback passed to
+	set_input_state_cb()
+
+	DEVICE_* (but not DEVICE_ID_*) constants represent the different kinds of
+	controllers that can be connected to a port. These should be passed to
+	set_controller_port_device() and will be given to the callback passed to
+	set_input_state_cb()
+
+	DEVICE_ID_* constants represent the button and axis inputs on various
+	controllers. They will be given to the callback passed to
+	set_input_state_cb()
 """
 import ctypes
 from snes import _snes_wrapper as W
@@ -15,6 +56,10 @@ MEMORY_GAME_BOY_RAM = 6
 MEMORY_GAME_BOY_RTC = 7
 
 VALID_MEMORY_TYPES = range(8)
+
+# Unused memory memory types are reported to have this size on Linux/x86_64.
+# TODO: Figure out if this is true everywhere.
+_MEMORY_SIZE_UNUSED = 2**32 - 1
 
 PORT_1 = False
 PORT_2 = True
@@ -59,6 +104,20 @@ DEVICE_ID_JUSTIFIER_Y = 1
 DEVICE_ID_JUSTIFIER_TRIGGER = 2
 DEVICE_ID_JUSTIFIER_START = 3
 
+# This keeps track of which cheats the user wants to apply to this game.
+_loaded_cheats = {}
+
+def _reload_cheats():
+	"""
+	Internal method.
+
+	Reloads cheats in the emulated SNES from the _loaded_cheats variable.
+	"""
+	W.cheat_reset()
+
+	for index, (code, enabled) in _loaded_cheats.items():
+		W.cheat_set(index, enabled, code)
+
 def _memory_to_string(mem_type):
 	"""
 	Internal method.
@@ -67,6 +126,9 @@ def _memory_to_string(mem_type):
 	"""
 	mem_size = get_memory_size(mem_type)
 	mem_data = get_memory_data(mem_type)
+
+	if mem_size == _MEMORY_SIZE_UNUSED:
+		return None
 
 	buffer = ctypes.create_string_buffer(mem_size)
 	ctypes.memmove(buffer, mem_data, mem_size)
@@ -88,7 +150,7 @@ def _string_to_memory(data, mem_type):
 
 	ctypes.memmove(mem_data, data, mem_size)
 
-class SNESException:
+class SNESException(Exception):
 	"""
 	Something went wrong with libsnes.
 	"""
@@ -105,7 +167,7 @@ _input_state_wrapper = None
 
 # Python wrapper functions that handle all the ctypes callback casting.
 
-def set_video_refresh(callback):
+def set_video_refresh_cb(callback):
 	"""
 	Sets the callback that will handle updated video frames.
 
@@ -145,9 +207,9 @@ def set_video_refresh(callback):
 		callback(data, width, height, hires, interlace, overscan, pitch)
 
 	_video_refresh_wrapper = W.video_refresh_cb_t(wrapped_callback)
-	W.set_video_refresh(_video_refresh_wrapper)
+	W.set_video_refresh_cb(_video_refresh_wrapper)
 
-def set_audio_sample(callback):
+def set_audio_sample_cb(callback):
 	"""
 	Sets the callback that will handle updated audio frames.
 
@@ -163,9 +225,9 @@ def set_audio_sample(callback):
 	"""
 	global _audio_sample_wrapper
 	_audio_sample_wrapper = W.audio_sample_cb_t(callback)
-	W.set_audio_sample(_audio_sample_wrapper)
+	W.set_audio_sample_cb(_audio_sample_wrapper)
 
-def set_input_poll(callback):
+def set_input_poll_cb(callback):
 	"""
 	Sets the callback that will check for updated input events.
 
@@ -175,9 +237,9 @@ def set_input_poll(callback):
 	"""
 	global _input_poll_wrapper
 	_input_poll_wrapper = W.input_poll_cb_t(callback)
-	W.set_input_poll(_input_poll_wrapper)
+	W.set_input_poll_cb(_input_poll_wrapper)
 
-def set_input_state(callback):
+def set_input_state_cb(callback):
 	"""
 	Sets the callback that reports the current state of input devices.
 
@@ -191,36 +253,48 @@ def set_input_state(callback):
 
 		"index" is a number describing which of the devices connected to the
 		port is being reported. It's probably only useful for DEVICE_MULTITAP
-		and DEVICE_JUSTIFIERS.
+		and DEVICE_JUSTIFIERS (TODO: check this).
 
 		"id" is one of the DEVICE_ID_* constants for the given device,
 		describing which button or axis is being reported (for DEVICE_MULTITAP,
 		use the DEVICE_ID_JOYPAD_* IDs)
 
 	The callback should return a number between -32768 and 32767 representing
-	the value of the button or axis being reported.
+	the value of the button or axis being reported (TODO: what do button inputs
+	return?).
 	"""
 	global _input_state_wrapper
 	_input_state_wrapper = W.input_state_cb_t(callback)
-	W.set_input_state(_input_state_wrapper)
+	W.set_input_state_cb(_input_state_wrapper)
 
 # Because libsnes crashes if somebody calls "run" without setting up
 # callbacks, let's set them to dummy functions by default.
-set_video_refresh(lambda *args: None)
-set_audio_sample(lambda *args: None)
-set_input_poll(lambda: None)
-set_input_state(lambda *args: 0)
+set_video_refresh_cb(lambda *args: None)
+set_audio_sample_cb(lambda *args: None)
+set_input_poll_cb(lambda: None)
+set_input_state_cb(lambda *args: 0)
 
 def set_controller_port_device(port, device):
 	"""
 	Connects the given device to the given controller port.
 
-	Any device previously connected to that port is disconnected.
+	Connecting a device to a port implicitly removes any device previously
+	connected to that port. To remove a device without connecting a new one,
+	pass DEVICE_NONE as the device parameter. From this point onward, the
+	callback passed to set_input_state_cb() will be called with the appropriate
+	device, index and id parameters.
 
-	"port" must be one of the constants PORT_1 (on the left-hand side of the
-	machine) or PORT_2 (on the right-hand side).
+	If this function is never called, the default is to have no controllers
+	connected at all. (TODO: is this true?)
 
-	"device" must be one of the DEVICE_* constants.
+	"port" must be one of the PORT_* constants, describing which port the given
+	controller will be connected to.
+
+	"device" must be one of the DEVICE_* (but not DEVICE_ID_*) constants,
+	describing what kind of device will be connected to the given port.
+
+	TODO: Is there any time it's not safe to call this method? For example, is
+	it safe to call this method from inside the input state callback?
 	"""
 	W.set_controller_port_device(port, device)
 
@@ -244,8 +318,11 @@ def run():
 	"""
 	Run the emulated SNES for one frame.
 
-	Before this function returns, each of the registered callbacks will be
-	called at least once each.
+	Before this function returns, the registered callbacks will be called at
+	least once each.
+
+	This function should be called fifty (for PAL cartridges) or sixty (for
+	NTSC cartridges) times per second for real-time emulation.
 
 	Requires that a cartridge be loaded.
 	"""
@@ -255,10 +332,17 @@ def unload():
 	"""
 	Remove the cartridge and return its non-volatile storage contents.
 
+	Returns a list with an entry for each MEMORY_* constant in
+	VALID_MEMORY_TYPES. If the current cartridge uses that type of storage, the
+	corresponding index in the list will be a string containing the storage
+	contents, which can later be passed to load_cartridge_*. Otherwise, the
+	corresponding index is None.
+
 	Requires that a cartridge be loaded.
 	"""
-	# TODO: Figure out what ram-types are being used and return them.
+	res = [_memory_to_string(t) for t in VALID_MEMORY_TYPES]
 	W.unload()
+	return res
 
 def serialize():
 	"""
@@ -266,6 +350,8 @@ def serialize():
 
 	This serialized data can be handed to unserialize() at a later time to
 	resume emulation from this point.
+
+	Requires that a cartridge be loaded.
 	"""
 	size = W.serialize_size()
 	buffer = ctypes.create_string_buffer(size)
@@ -286,20 +372,6 @@ def unserialize(state):
 	res = W.unserialize(ctypes.cast(state, W.data_p), len(state))
 	if not res:
 		raise SNESException("problem in unserialize")
-
-# This keeps track of which cheats the user wants to apply to this game.
-_loaded_cheats = {}
-
-def _reload_cheats():
-	"""
-	Internal method.
-
-	Reloads cheats in the emulated SNES from the _loaded_cheats variable.
-	"""
-	W.cheat_reset()
-
-	for index, (code, enabled) in _loaded_cheats.items():
-		W.cheat_set(index, enabled, code)
 
 def cheat_add(index, code, enabled=True):
 	"""
@@ -397,6 +469,8 @@ def load_cartridge_bsx_slotted(base_data, slot_data, base_sram=None,
 	from the previous session. If not supplied or None, the cartridge will be
 	given a fresh, blank RTC region (most cartridges don't use an RTC).
 
+	TODO: Does the BS-X base cart use SRAM and/or RTC storage?
+
 	"bsx_ram" should be a string containing the BS-X RAM data saved from the
 	previous session. If not supplied or None, the cartridge will be given
 	a fresh, blank RAM region.
@@ -470,6 +544,8 @@ def load_cartridge_bsx(base_data, slot_data, base_sram=None,
 	memory-mapping for the cartridge loaded inside the BS-X base cartridge. If
 	not supplied or None, a guessed mapping will be used (the guess should be
 	correct for all licenced games released in all regions).
+
+	TODO: How on earth is this different from load_cartridge_bsx_slotted?
 	"""
 	W.load_cartridge_bsx(
 			base_mapping, ctypes.cast(base_data, W.data_p), len(base_data),

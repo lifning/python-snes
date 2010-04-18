@@ -1,5 +1,7 @@
 """
-A CTypes wrapper for the raw libsnes API.
+A low-level ctypes wrapper for the libsnes API.
+
+You probably want to use the Python API in snes.core instead of this.
 """
 import ctypes, atexit
 
@@ -30,21 +32,21 @@ if libsnes_version != 1:
 	raise RuntimeError("Unsupported libsnes version %r" % libsnes_version)
 
 # Set up prototypes for all the libsnes functions.
-set_video_refresh = libsnes.snes_set_video_refresh
-set_video_refresh.restype = None
-set_video_refresh.argtypes = [video_refresh_cb_t]
+set_video_refresh_cb = libsnes.snes_set_video_refresh
+set_video_refresh_cb.restype = None
+set_video_refresh_cb.argtypes = [video_refresh_cb_t]
 
-set_audio_sample = libsnes.snes_set_audio_sample
-set_audio_sample.restype = None
-set_audio_sample.argtypes = [audio_sample_cb_t]
+set_audio_sample_cb = libsnes.snes_set_audio_sample
+set_audio_sample_cb.restype = None
+set_audio_sample_cb.argtypes = [audio_sample_cb_t]
 
-set_input_poll = libsnes.snes_set_input_poll
-set_input_poll.restype = None
-set_input_poll.argtypes = [input_poll_cb_t]
+set_input_poll_cb = libsnes.snes_set_input_poll
+set_input_poll_cb.restype = None
+set_input_poll_cb.argtypes = [input_poll_cb_t]
 
-set_input_state = libsnes.snes_set_input_state
-set_input_state.restype = None
-set_input_state.argtypes = [input_state_cb_t]
+set_input_state_cb = libsnes.snes_set_input_state
+set_input_state_cb.restype = None
+set_input_state_cb.argtypes = [input_state_cb_t]
 
 set_controller_port_device = libsnes.snes_set_controller_port_device
 set_controller_port_device.restype = None

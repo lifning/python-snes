@@ -12,22 +12,12 @@ def video_refresh_callback(*args):
 	global frame_counter
 	frame_counter += 1
 
-def audio_sample_callback(*args):
-	global sample_counter
-	sample_counter += 1
-
-def input_poll_callback():
-	global input_poll_counter
-	input_poll_counter += 1
-
-core.set_video_refresh(video_refresh_callback)
-core.set_audio_sample(audio_sample_callback)
-core.set_input_poll(input_poll_callback)
+core.set_video_refresh_cb(video_refresh_callback)
 
 with open(game_path, "rb") as handle:
 	core.load_cartridge_normal(handle.read())
 
-RUN_COUNT = 120
+RUN_COUNT = 600 # ~10 emulated seconds
 
 start = time.clock()
 for i in range(RUN_COUNT):
