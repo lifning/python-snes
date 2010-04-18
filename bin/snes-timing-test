@@ -1,18 +1,9 @@
 #!/usr/bin/python
 import sys, time
 from snes import core
+from snes.video.pil_output import set_video_refresh_cb
 
 game_path = sys.argv[1]
-
-frame_counter = 0
-sample_counter = 0
-input_poll_counter = 0
-
-def video_refresh_callback(*args):
-	global frame_counter
-	frame_counter += 1
-
-core.set_video_refresh_cb(video_refresh_callback)
 
 with open(game_path, "rb") as handle:
 	core.load_cartridge_normal(handle.read())
@@ -22,9 +13,8 @@ RUN_COUNT = 600 # ~10 emulated seconds
 start = time.clock()
 for i in range(RUN_COUNT):
 	core.run()
-
 elapsed = time.clock() - start
 
-print "%d frames in %0.3f seconds; %0.1fps" % (
-		frame_counter, elapsed, (frame_counter/elapsed)
+print "%d frames in %0.3f seconds; %0.1ffps" % (
+		RUN_COUNT, elapsed, (RUN_COUNT/elapsed)
 	)
