@@ -578,4 +578,81 @@ def load_cartridge_bsx(base_data, slot_data, base_sram=None,
 	if bsx_pram is not None:
 		_string_to_memory(bsx_pram, MEMORY_BSX_PRAM)
 
+def load_cartridge_sufami_turbo(base_data, slot_a_data=None, slot_b_data=None,
+		base_sram=None, base_rtc=None, slot_a_sram=None, slot_b_sram=None,
+		base_mapping=None, slot_a_mapping=None, slot_b_mapping=None):
+	"""
+	Load a Sufami Turbo cartridge into the emulated SNES.
+
+	"base_data" must be a string containing the uncompressed, de-interleaved,
+	headerless ROM image of the Sufami Turbo cartridge.
+
+	"slot_a_data" must be a string containing the uncompressed, de-interleaved,
+	headerless ROM image of the cartridge loaded into the 'A' slot of the
+	Sufami Turbo cartridge.
+
+	"slot_b_data" must be a string containing the uncompressed, de-interleaved,
+	headerless ROM image of the cartridge loaded into the 'B' slot of the
+	Sufami Turbo cartridge.
+
+	"base_sram" should be a string containing the SRAM data saved from the
+	previous session. If not supplied or None, the cartridge will be given
+	a fresh, blank SRAM region.
+
+	"base_rtc" should be a string containing the real-time-clock data saved
+	from the previous session. If not supplied or None, the cartridge will be
+	given a fresh, blank RTC region (most cartridges don't use an RTC).
+
+	"slot_a_sram" should be a string containing the SRAM data saved from the
+	previous time the cartridge in slot 'A' was loaded. If not supplied or
+	None, the cartridge will be given a fresh, blank SRAM region.
+
+	"slot_b_sram" should be a string containing the SRAM data saved from the
+	previous time the cartridge in slot 'B' was loaded. If not supplied or
+	None, the cartridge will be given a fresh, blank SRAM region.
+
+	"base_mapping" should be a string containing an XML document describing the
+	memory-mapping for the Sufami Turbo base cartridge. If not supplied or
+	None, a guessed mapping will be used (the guess should be correct for all
+	licenced games released in all regions).
+
+	"slot_a_mapping" should be a string containing an XML document describing
+	the memory-mapping for the cartridge loaded in slot 'A'.  If not supplied
+	or None, a guessed mapping will be used (the guess should be correct for
+	all licenced games released in all regions).
+
+	"slot_b_mapping" should be a string containing an XML document describing
+	the memory-mapping for the cartridge loaded in slot 'B'.  If not supplied
+	or None, a guessed mapping will be used (the guess should be correct for
+	all licenced games released in all regions).
+	"""
+	if slot_a_data is None:
+		slot_a_length = 0
+	else:
+		slot_a_length = len(slot_a_data)
+
+	if slot_b_data is None:
+		slot_b_length = 0
+	else:
+		slot_b_length = len(slot_b_data)
+
+	W.load_cartridge_sufami_turbo(
+			base_mapping, ctypes.cast(base_data, W.data_p), len(base_data),
+			slot_a_mapping, ctypes.cast(slot_a_data, W.data_p), slot_a_length,
+			slot_b_mapping, ctypes.cast(slot_b_data, W.data_p), slot_b_length,
+		)
+
+	if base_sram is not None:
+		_string_to_memory(base_sram, MEMORY_CARTRIDGE_RAM)
+
+	if base_rtc is not None:
+		_string_to_memory(base_rtc, MEMORY_CARTRIDGE_RTC)
+
+	if slot_a_sram is not None:
+		_string_to_memory(slot_a_sram, MEMORY_SUFAMI_TURBO_A_RAM)
+
+	if slot_b_sram is not None:
+		_string_to_memory(slot_b_sram, MEMORY_SUFAMI_TURBO_B_RAM)
+
+
 # TODO: Other cart loading methods.
