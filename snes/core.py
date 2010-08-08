@@ -10,13 +10,15 @@ something like this:
 	   needs controller input.
 	2. Call one of the load_cartridge_* methods to give the emulated SNES
 	   a cartridge image to run.
-	3. Call run() fifty (PAL) or sixty (NTSC) times a second to cause emulation
+	3. Call get_region() to find out whether the loaded cartridge is PAL or
+	   NTSC.
+	4. Call run() fifty (PAL) or sixty (NTSC) times a second to cause emulation
 	   to occur. Process the output and supply input as the registered
 	   callbacks are called.
-	4. Call unload() to free the resources associated with the loaded
+	5. Call unload() to free the resources associated with the loaded
 	   cartridge, and return the contents of the cartridge's non-volatile
 	   storage for use with the next session.
-	5. If you want to switch to a different cartridge, call a load_cartridge_*
+	6. If you want to switch to a different cartridge, call a load_cartridge_*
 	   method again, and go to step 3.
 
 Constants defined in this module:
