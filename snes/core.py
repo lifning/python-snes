@@ -128,8 +128,8 @@ def _memory_to_string(mem_type):
 
 	Copies data from the given libsnes memory buffer into a new string.
 	"""
-	mem_size = get_memory_size(mem_type)
-	mem_data = get_memory_data(mem_type)
+	mem_size = W.get_memory_size(mem_type)
+	mem_data = W.get_memory_data(mem_type)
 
 	if mem_size == 0:
 		return None
