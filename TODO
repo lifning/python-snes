@@ -1,0 +1,15 @@
+ - Integrate the following info into the docs:
+   SNES_DEVICE_JUSTIFIER means only one lightgun is connected, single-player
+   in Lethal Enforcers.  SNES_DEVICE_JUSTIFIERS means two of them are daisy
+   chained. So you'll get two onscreen cursors and polling for both.
+
+   A BS-X slotted cartridge is a standard cartridge that happens to take
+   a BS-X flash cart to extend the game.  A BS-X cartridge is the actual BS-X
+   town cartridge, which has a special MMC, non-volatile PSRAM, and links to
+   the Satellaview.
+
+   It's technically possible to merge them into one function, but I didn't see
+   a point. One of the big reasons to separate them is that the BS-X takes
+   a single BIOS, so it's a good opportunity to save that and avoid having to
+   ask the user to specify it all the time. BS-X slotted carts shouldn't
+   interfere with that mechanism.
