@@ -488,18 +488,20 @@ def load_cartridge_normal(data, sram=None, rtc=None, mapping=None):
 	if rtc is not None:
 		_string_to_memory(rtc, MEMORY_CARTRIDGE_RTC)
 
-def load_cartridge_bsx_slotted(base_data, slot_data, base_sram=None,
-		base_rtc=None, bsx_ram=None, bsx_pram=None, base_mapping=None,
-		slot_mapping=None):
+def load_cartridge_bsx_slotted(base_data, slot_data=None, base_sram=None,
+		base_rtc=None,  base_mapping=None, slot_mapping=None):
 	"""
 	Load a BS-X slotted cartridge into the emulated SNES.
 
+	A "BS-X slotted cartridge" is an ordinary SNES cartridge with a slot in the
+	top that accepts the same memory packs that the BS-X cartridge does.
+
 	"base_data" must be a string containing the uncompressed, de-interleaved,
-	headerless ROM image of the BS-X base cartridge.
+	headerless ROM image of the BS-X slotted cartridge.
 
 	"slot_data" must be a string containing the uncompressed, de-interleaved,
-	headerless ROM image of the cartridge loaded inside the BS-X base
-	cartridge.
+	headerless ROM image of the cartridge loaded inside the slotted cartridge's
+	slot. If not supplied or None, the slot will be left empty.
 
 	"base_sram" should be a string containing the SRAM data saved from the
 	previous session. If not supplied or None, the cartridge will be given
@@ -509,29 +511,24 @@ def load_cartridge_bsx_slotted(base_data, slot_data, base_sram=None,
 	from the previous session. If not supplied or None, the cartridge will be
 	given a fresh, blank RTC region (most cartridges don't use an RTC).
 
-	TODO: Does the BS-X base cart use SRAM and/or RTC storage?
-
-	"bsx_ram" should be a string containing the BS-X RAM data saved from the
-	previous session. If not supplied or None, the cartridge will be given
-	a fresh, blank RAM region.
-
-	"bsx_pram" should be a string containing the BS-X PRAM data saved from the
-	previous session. If not supplied or None, the cartridge will be given
-	a fresh, blank PRAM region.
-
 	"base_mapping" should be a string containing an XML document describing the
-	memory-mapping for the BS-X base cartridge. If not supplied or None,
+	memory-mapping for the BS-X slotted cartridge. If not supplied or None,
 	a guessed mapping will be used (the guess should be correct for all
 	licenced games released in all regions).
 
 	"slot_mapping" should be a string containing an XML document describing the
-	memory-mapping for the cartridge loaded inside the BS-X base cartridge. If
-	not supplied or None, a guessed mapping will be used (the guess should be
-	correct for all licenced games released in all regions).
+	memory-mapping for the cartridge loaded inside the BS-X slotted cartridge.
+	If not supplied or None, a guessed mapping will be used (the guess should
+	be correct for all licenced games released in all regions).
 	"""
+	if slot_data is None:
+		slot_length = 0
+	else:
+		slot_length = len(slot_data)
+
 	W.load_cartridge_bsx_slotted(
 			base_mapping, ctypes.cast(base_data, W.data_p), len(base_data),
-			slot_mapping, ctypes.cast(slot_data, W.data_p), len(slot_data),
+			slot_mapping, ctypes.cast(slot_data, W.data_p), slot_length,
 		)
 
 	if base_sram is not None:
@@ -540,94 +537,73 @@ def load_cartridge_bsx_slotted(base_data, slot_data, base_sram=None,
 	if base_rtc is not None:
 		_string_to_memory(base_rtc, MEMORY_CARTRIDGE_RTC)
 
-	if bsx_ram is not None:
-		_string_to_memory(bsx_ram, MEMORY_BSX_RAM)
-
-	if bsx_pram is not None:
-		_string_to_memory(bsx_pram, MEMORY_BSX_PRAM)
-
-def load_cartridge_bsx(base_data, slot_data, base_sram=None,
-		base_rtc=None, bsx_ram=None, bsx_pram=None, base_mapping=None,
-		slot_mapping=None):
+def load_cartridge_bsx(bios_data, slot_data=None, bios_ram=None,
+		bios_pram=None, bios_mapping=None, slot_mapping=None):
 	"""
-	Load a BS-X slotted cartridge into the emulated SNES.
+	Load the BS-X base unit cartridge into the emulated SNES.
 
-	"base_data" must be a string containing the uncompressed, de-interleaved,
-	headerless ROM image of the BS-X base cartridge.
+	The "BS-X base unit cartridge" is the one connected to the BS-X base unit.
+	It has a slot which accepts BS-X memory packs.
+
+	"bios_data" must be a string containing the uncompressed, de-interleaved,
+	headerless ROM image of the BS-X base unit cartridge.
 
 	"slot_data" must be a string containing the uncompressed, de-interleaved,
 	headerless ROM image of the cartridge loaded inside the BS-X base
-	cartridge.
+	cartridge's slot. If not supplied or None, the slot will be left empty.
 
-	"base_sram" should be a string containing the SRAM data saved from the
-	previous session. If not supplied or None, the cartridge will be given
-	a fresh, blank SRAM region.
-
-	"base_rtc" should be a string containing the real-time-clock data saved
-	from the previous session. If not supplied or None, the cartridge will be
-	given a fresh, blank RTC region (most cartridges don't use an RTC).
-
-	"bsx_ram" should be a string containing the BS-X RAM data saved from the
+	"bios_ram" should be a string containing the BS-X RAM data saved from the
 	previous session. If not supplied or None, the cartridge will be given
 	a fresh, blank RAM region.
 
-	"bsx_pram" should be a string containing the BS-X PRAM data saved from the
+	"bios_pram" should be a string containing the BS-X PRAM data saved from the
 	previous session. If not supplied or None, the cartridge will be given
 	a fresh, blank PRAM region.
 
-	"base_mapping" should be a string containing an XML document describing the
-	memory-mapping for the BS-X base cartridge. If not supplied or None,
-	a guessed mapping will be used (the guess should be correct for all
-	licenced games released in all regions).
+	"bios_mapping" should be a string containing an XML document describing the
+	memory-mapping for the BS-X base unit cartridge. If not supplied or None,
+	a guessed mapping will be used, which should be accurate.
 
 	"slot_mapping" should be a string containing an XML document describing the
-	memory-mapping for the cartridge loaded inside the BS-X base cartridge. If
-	not supplied or None, a guessed mapping will be used (the guess should be
-	correct for all licenced games released in all regions).
-
-	TODO: How on earth is this different from load_cartridge_bsx_slotted?
+	memory-mapping for the cartridge loaded inside the BS-X base unit
+	cartridge. If not supplied or None, a guessed mapping will be used (the
+	guess should be correct for all licenced games released in all regions).
 	"""
+	if slot_data is None:
+		slot_length = 0
+	else:
+		slot_length = len(slot_data)
+
 	W.load_cartridge_bsx(
-			base_mapping, ctypes.cast(base_data, W.data_p), len(base_data),
-			slot_mapping, ctypes.cast(slot_data, W.data_p), len(slot_data),
+			bios_mapping, ctypes.cast(bios_data, W.data_p), len(bios_data),
+			slot_mapping, ctypes.cast(slot_data, W.data_p), slot_length,
 		)
 
-	if base_sram is not None:
-		_string_to_memory(base_sram, MEMORY_CARTRIDGE_RAM)
+	if bios_ram is not None:
+		_string_to_memory(bios_ram, MEMORY_BSX_RAM)
 
-	if base_rtc is not None:
-		_string_to_memory(base_rtc, MEMORY_CARTRIDGE_RTC)
+	if bios_pram is not None:
+		_string_to_memory(bios_pram, MEMORY_BSX_PRAM)
 
-	if bsx_ram is not None:
-		_string_to_memory(bsx_ram, MEMORY_BSX_RAM)
-
-	if bsx_pram is not None:
-		_string_to_memory(bsx_pram, MEMORY_BSX_PRAM)
-
-def load_cartridge_sufami_turbo(base_data, slot_a_data=None, slot_b_data=None,
-		base_sram=None, base_rtc=None, slot_a_sram=None, slot_b_sram=None,
-		base_mapping=None, slot_a_mapping=None, slot_b_mapping=None):
+def load_cartridge_sufami_turbo(bios_data, slot_a_data=None, slot_b_data=None,
+		slot_a_sram=None, slot_b_sram=None, bios_mapping=None,
+		slot_a_mapping=None, slot_b_mapping=None):
 	"""
 	Load a Sufami Turbo cartridge into the emulated SNES.
 
-	"base_data" must be a string containing the uncompressed, de-interleaved,
+	"bios_data" must be a string containing the uncompressed, de-interleaved,
 	headerless ROM image of the Sufami Turbo cartridge.
 
 	"slot_a_data" must be a string containing the uncompressed, de-interleaved,
 	headerless ROM image of the cartridge loaded into the 'A' slot of the
-	Sufami Turbo cartridge.
+	Sufami Turbo cartridge. This is the actual game that will play. If not
+	supplied or left empty, no cartridge will be loaded in this slot.
 
 	"slot_b_data" must be a string containing the uncompressed, de-interleaved,
 	headerless ROM image of the cartridge loaded into the 'B' slot of the
-	Sufami Turbo cartridge.
-
-	"base_sram" should be a string containing the SRAM data saved from the
-	previous session. If not supplied or None, the cartridge will be given
-	a fresh, blank SRAM region.
-
-	"base_rtc" should be a string containing the real-time-clock data saved
-	from the previous session. If not supplied or None, the cartridge will be
-	given a fresh, blank RTC region (most cartridges don't use an RTC).
+	Sufami Turbo cartridge. This game's data will be available to the game in
+	slot 'A'. If not supplied or left empty, no cartridge will be loaded in
+	this slot.
 
 	"slot_a_sram" should be a string containing the SRAM data saved from the
 	previous time the cartridge in slot 'A' was loaded. If not supplied or
@@ -637,7 +613,7 @@ def load_cartridge_sufami_turbo(base_data, slot_a_data=None, slot_b_data=None,
 	previous time the cartridge in slot 'B' was loaded. If not supplied or
 	None, the cartridge will be given a fresh, blank SRAM region.
 
-	"base_mapping" should be a string containing an XML document describing the
+	"bios_mapping" should be a string containing an XML document describing the
 	memory-mapping for the Sufami Turbo base cartridge. If not supplied or
 	None, a guessed mapping will be used (the guess should be correct for all
 	licenced games released in all regions).
@@ -663,16 +639,10 @@ def load_cartridge_sufami_turbo(base_data, slot_a_data=None, slot_b_data=None,
 		slot_b_length = len(slot_b_data)
 
 	W.load_cartridge_sufami_turbo(
-			base_mapping, ctypes.cast(base_data, W.data_p), len(base_data),
+			bios_mapping, ctypes.cast(bios_data, W.data_p), len(bios_data),
 			slot_a_mapping, ctypes.cast(slot_a_data, W.data_p), slot_a_length,
 			slot_b_mapping, ctypes.cast(slot_b_data, W.data_p), slot_b_length,
 		)
-
-	if base_sram is not None:
-		_string_to_memory(base_sram, MEMORY_CARTRIDGE_RAM)
-
-	if base_rtc is not None:
-		_string_to_memory(base_rtc, MEMORY_CARTRIDGE_RTC)
 
 	if slot_a_sram is not None:
 		_string_to_memory(slot_a_sram, MEMORY_SUFAMI_TURBO_A_RAM)
