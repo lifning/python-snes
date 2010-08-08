@@ -4,6 +4,7 @@ import pygtk
 pygtk.require("2.0")
 import gtk, gobject
 from snes import core
+from snes.util import snes_framebuffer_to_XRGB8888
 
 game_path = sys.argv[1]
 
@@ -30,21 +31,6 @@ gc = canvas.get_style().fg_gc[gtk.STATE_NORMAL]
 framecount = 0.0
 start = time.clock()
 
-def decode_pixel(pixel):
-	r = (pixel & 0x7c00) >> 7
-	g = (pixel & 0x03e0) >> 2
-	b = (pixel & 0x001f) << 3
-
-	# FIXME: For speed we're using ints to hold XBGR8888 data, assuming that
-	# they're 32-bit and little-endian. This is... less than portable.
-	return (
-			(r | (r >> 5))       |
-			(g | (g >> 5)) << 8  |
-			(b | (b >> 5)) << 16
-		)
-
-rgb_lookup = [decode_pixel(p) for p in xrange(32768)]
-
 def paint_frame(data, width, height, hires, interlace, overscan, pitch):
 	global framecount, start
 
@@ -57,11 +43,7 @@ def paint_frame(data, width, height, hires, interlace, overscan, pitch):
 		start = now
 
 	drawable.draw_rgb_32_image(gc, 0,0, width, height, gtk.gdk.RGB_DITHER_NONE,
-			array.array('i', [
-				rgb_lookup[data[pitch * y + x]]
-				for y in xrange(height)
-				for x in xrange(width)
-			]), -1)
+			snes_framebuffer_to_XRGB8888(data, width, height, pitch), -1)
 
 	framecount += 1
 
