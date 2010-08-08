@@ -252,12 +252,13 @@ def set_input_state_cb(callback):
 		device is currently connected to the given port.
 
 		"index" is a number describing which of the devices connected to the
-		port is being reported. It's probably only useful for DEVICE_MULTITAP
-		and DEVICE_JUSTIFIERS (TODO: check this).
+		port is being reported. It's only useful for DEVICE_MULTITAP and
+		DEVICE_JUSTIFIERS - for other device types, it's always 0.
 
 		"id" is one of the DEVICE_ID_* constants for the given device,
 		describing which button or axis is being reported (for DEVICE_MULTITAP,
-		use the DEVICE_ID_JOYPAD_* IDs)
+		use the DEVICE_ID_JOYPAD_* IDs; for DEVICE_JUSTIFIERS use the
+		DEVICE_ID_JUSTIFIER_* IDs.).
 
 	The callback should return a number between -32768 and 32767 representing
 	the value of the button or axis being reported (TODO: what do button inputs
@@ -291,7 +292,20 @@ def set_controller_port_device(port, device):
 	controller will be connected to.
 
 	"device" must be one of the DEVICE_* (but not DEVICE_ID_*) constants,
-	describing what kind of device will be connected to the given port.
+	describing what kind of device will be connected to the given port. The
+	devices are:
+
+		- DEVICE_NONE: No device is connected to this port.
+		- DEVICE_JOYPAD: A standard SNES gamepad.
+		- DEVICE_MULTITAP: A multitap controller, which acts like
+		  4 DEVICE_JOYPADs. Your input state callback will be passed "id"
+		  parameters between 0 and 3.
+		- DEVICE_MOUSE: A SNES mouse controller, as shipped with Mario Paint.
+		- DEVICE_SUPER_SCOPE: A Nintendo Super Scope light-gun device.
+		- DEVICE_JUSTIFIER: A Konami Justifier light-gun device.
+		- DEVICE_JUSTIFIERS: Two Konami Justifier light-gun devices,
+		  daisy-chained together. Your input state callback will be passed "id"
+		  parameters 0 and 1.
 
 	TODO: Is there any time it's not safe to call this method? For example, is
 	it safe to call this method from inside the input state callback?
