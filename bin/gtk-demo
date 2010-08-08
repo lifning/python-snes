@@ -31,9 +31,9 @@ framecount = 0.0
 start = time.clock()
 
 def decode_pixel(pixel):
-	r = (pixel & 0x001f) << 3
+	r = (pixel & 0x7c00) >> 7
 	g = (pixel & 0x03e0) >> 2
-	b = (pixel & 0x7c00) >> 7
+	b = (pixel & 0x001f) << 3
 
 	# FIXME: For speed we're using ints to hold XBGR8888 data, assuming that
 	# they're 32-bit and little-endian. This is... less than portable.

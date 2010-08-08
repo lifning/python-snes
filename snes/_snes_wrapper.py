@@ -23,13 +23,17 @@ input_state_cb_t = ctypes.CFUNCTYPE(ctypes.c_int16, ctypes.c_bool,
 libsnes = ctypes.cdll.LoadLibrary("libsnes.so")
 
 # Check the libsnes version matches the API we're defining here.
-library_revision = libsnes.snes_library_revision
-library_revision.restype = ctypes.c_uint
-library_revision.argtypes = []
+library_revision_major = libsnes.snes_library_revision_major
+library_revision_major.restype = ctypes.c_uint
+library_revision_major.argtypes = []
+library_revision_minor = libsnes.snes_library_revision_minor
+library_revision_minor.restype = ctypes.c_uint
+library_revision_minor.argtypes = []
 
-libsnes_version = library_revision()
-if libsnes_version != 1:
-	raise RuntimeError("Unsupported libsnes version %r" % libsnes_version)
+libsnes_api_version = library_revision_major()
+if libsnes_api_version != 1:
+	raise RuntimeError("Unsupported libsnes version %d.%d" % (
+		library_revision_major(), library_revision_minor()))
 
 # Set up prototypes for all the libsnes functions.
 set_video_refresh_cb = libsnes.snes_set_video_refresh
@@ -63,10 +67,6 @@ reset.argtypes = []
 run = libsnes.snes_run
 run.restype = None
 run.argtypes = []
-
-unload = libsnes.snes_unload
-unload.restype = None
-unload.argtypes = []
 
 serialize_size = libsnes.snes_serialize_size
 serialize_size.restype = ctypes.c_uint
@@ -120,6 +120,14 @@ load_cartridge_super_game_boy.argtypes = [
 		ctypes.c_char_p, data_p, ctypes.c_uint,
 		ctypes.c_char_p, data_p, ctypes.c_uint,
 	]
+
+unload = libsnes.snes_unload_cartridge
+unload.restype = None
+unload.argtypes = []
+
+get_region = libsnes.snes_get_region
+get_region.restype = ctypes.c_bool
+get_region.argtypes = []
 
 get_memory_data = libsnes.snes_get_memory_data
 get_memory_data.restype = data_p

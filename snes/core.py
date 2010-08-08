@@ -57,6 +57,10 @@ MEMORY_GAME_BOY_RTC = 7
 
 VALID_MEMORY_TYPES = range(8)
 
+# Return values for get_region()
+NTSC = False
+PAL = True
+
 # Unused memory memory types are reported to have this size on Linux/x86_64.
 # TODO: Figure out if this is true everywhere.
 _MEMORY_SIZE_UNUSED = 2**32 - 1
@@ -127,7 +131,7 @@ def _memory_to_string(mem_type):
 	mem_size = get_memory_size(mem_type)
 	mem_data = get_memory_data(mem_type)
 
-	if mem_size == _MEMORY_SIZE_UNUSED:
+	if mem_size == 0:
 		return None
 
 	buffer = ctypes.create_string_buffer(mem_size)
@@ -343,6 +347,16 @@ def unload():
 	res = [_memory_to_string(t) for t in VALID_MEMORY_TYPES]
 	W.unload()
 	return res
+
+def get_region():
+	"""
+	Determine the intended region of the loaded cartridge.
+
+	Returns one of the constants NTSC or PAL. NTSC means that you should call
+	run() 60 times a second for real-time emulation, PAL means that you should
+	call run() 50 times a second.
+	"""
+	return W.get_region()
 
 def serialize():
 	"""
