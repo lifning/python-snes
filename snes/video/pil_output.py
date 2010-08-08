@@ -1,15 +1,14 @@
 """
 Python Imaging Library (PIL) output for SNES Video.
-
-
 """
+
 from PIL import Image
 from snes import core
 
 def _decode_pixel(pixel):
-	r = (pixel & 0x001f) << 3
-	g = (pixel & 0x03e0) >> 2
+	r = (pixel & 0x03e0) >> 2
 	b = (pixel & 0x7c00) >> 7
+	g = (pixel & 0x001f) << 3
 
 	return (
 			r | (r >> 5),
