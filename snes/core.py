@@ -33,16 +33,16 @@ Constants defined in this module:
 	PORT_* constants represent the different ports to which controllers can be
 	connected on the SNES. These should be passed to
 	set_controller_port_device() and will be given to the callback passed to
-	set_input_state_cb()
+	set_input_state_cb().
 
 	DEVICE_* (but not DEVICE_ID_*) constants represent the different kinds of
 	controllers that can be connected to a port. These should be passed to
 	set_controller_port_device() and will be given to the callback passed to
-	set_input_state_cb()
+	set_input_state_cb().
 
 	DEVICE_ID_* constants represent the button and axis inputs on various
 	controllers. They will be given to the callback passed to
-	set_input_state_cb()
+	set_input_state_cb().
 """
 import ctypes
 from snes import _snes_wrapper as W
