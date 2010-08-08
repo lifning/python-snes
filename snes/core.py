@@ -61,10 +61,6 @@ VALID_MEMORY_TYPES = range(8)
 NTSC = False
 PAL = True
 
-# Unused memory memory types are reported to have this size on Linux/x86_64.
-# TODO: Figure out if this is true everywhere.
-_MEMORY_SIZE_UNUSED = 2**32 - 1
-
 PORT_1 = False
 PORT_2 = True
 
@@ -145,8 +141,8 @@ def _string_to_memory(data, mem_type):
 
 	Copies the given data into the libsnes memory buffer of the given type.
 	"""
-	mem_size = get_memory_size(mem_type)
-	mem_data = get_memory_data(mem_type)
+	mem_size = W.get_memory_size(mem_type)
+	mem_data = W.get_memory_data(mem_type)
 
 	if len(data) != mem_size:
 		raise SNESException("This cartridge requires %d bytes of memory type "
