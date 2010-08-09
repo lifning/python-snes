@@ -1,6 +1,5 @@
 Things to implement in python-snes:
  - It's safe to call set_controller_port_device() anytime.
- - Controller buttons return 1 for 'pressed' and 0 for 'not pressed'.
  - Add a parser/serialiser for bsnes movie files?
 
 Things to pester byuu about:

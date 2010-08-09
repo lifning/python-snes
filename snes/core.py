@@ -267,9 +267,12 @@ def set_input_state_cb(callback):
 		use the DEVICE_ID_JOYPAD_* IDs; for DEVICE_JUSTIFIERS use the
 		DEVICE_ID_JUSTIFIER_* IDs.).
 
-	The callback should return a number between -32768 and 32767 representing
-	the value of the button or axis being reported (TODO: what do button inputs
-	return?).
+	If "id" represents an analogue input (such as DEVICE_ID_MOUSE_X and
+	DEVICE_ID_MOUSE_Y), you should return a value between -32768 and 32767. If
+	it represents a digital input such as DEVICE_ID_MOUSE_LEFT or
+	DEVICE_ID_MOUSE_RIGHT), return 1 if the button is pressed, and 0 otherwise.
+
+	You are responsible for implementing any turbo-fire features, etc.
 	"""
 	global _input_state_wrapper
 	_input_state_wrapper = W.input_state_cb_t(callback)
