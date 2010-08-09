@@ -653,5 +653,54 @@ def load_cartridge_sufami_turbo(bios_data, slot_a_data=None, slot_b_data=None,
 	if slot_b_sram is not None:
 		_string_to_memory(slot_b_sram, MEMORY_SUFAMI_TURBO_B_RAM)
 
+def load_cartridge_super_game_boy(bios_data, dmg_data=None, dmg_sram=None,
+		dmg_rtc=None, bios_mapping=None, dmg_mapping=None):
+	"""
+	Load a Gameboy cartridge in a Super Gameboy into the emulated SNES.
+
+	"bios_data" must be a string containing the uncompressed, de-interleaved,
+	headerless ROM image of the Super Gameboy cartridge.
+
+	"dmg_data" should be a string containing the uncompressed, de-interleaved,
+	headerless ROM image of a Gameboy cartridge. The emulated Super Gameboy has
+	the same compatibility with Gameboy cartridges as the original Super
+	Gameboy. If not supplied or None, a null Gameboy cartridge will be
+	generated and loaded into the Super Gameboy.
+
+	"dmg_sram" should be a string containing the SRAM data saved from the
+	previous session. If not supplied or None, the cartridge will be given
+	a fresh, blank SRAM region.
+
+	"dmg_rtc" should be a string containing the real-time-clock data saved from
+	the previous session. If not supplied or None, the cartridge will be given
+	a fresh, blank RTC region.
+
+	"bios_mapping" should be a string containing an XML document describing the
+	memory-mapping for the Super Gameboy cartridge. If not supplied or None,
+	a guessed mapping will be used (which is correct for the official Super
+	Gameboy cartridge).
+
+	"dmg_mapping" should be a string containing an XML document describing the
+	memory-mapping for the Gameboy cartridge. If not supplied or None,
+	a guessed mapping will be used (which should be correct for all licenced
+	games released in all regions).
+	"""
+
+	if dmg_data is None:
+		dmg_length = 0
+	else:
+		dmg_length = len(dmg_data)
+
+	W.load_cartridge_super_game_boy(
+			bios_mapping, ctypes.cast(bios_data, W.data_p), len(bios_data),
+			dmg_mapping, ctypes.cast(dmg_data, W.data_p), dmg_length,
+		)
+
+	if dmg_sram is not None:
+		_string_to_memory(dmg_sram, MEMORY_GAME_BOY_RAM)
+
+	if dmg_rtc is not None:
+		_string_to_memory(dmg_rtc, MEMORY_GAME_BOY_RTC)
+
 
 # TODO: Other cart loading methods.
