@@ -471,7 +471,7 @@ def load_cartridge_normal(data, sram=None, rtc=None, mapping=None):
 
 	"sram" should be a string containing the SRAM data saved from the previous
 	session. If not supplied or None, the cartridge will be given a fresh,
-	blank SRAM region.
+	blank SRAM region (some cartridges don't use SRAM).
 
 	"rtc" should be a string containing the real-time-clock data saved from the
 	previous session. If not supplied or None, the cartridge will be given
@@ -501,7 +501,7 @@ def load_cartridge_bsx_slotted(base_data, slot_data=None, base_sram=None,
 	"base_data" must be a string containing the uncompressed, de-interleaved,
 	headerless ROM image of the BS-X slotted cartridge.
 
-	"slot_data" must be a string containing the uncompressed, de-interleaved,
+	"slot_data" should be a string containing the uncompressed, de-interleaved,
 	headerless ROM image of the cartridge loaded inside the slotted cartridge's
 	slot. If not supplied or None, the slot will be left empty.
 
@@ -550,7 +550,7 @@ def load_cartridge_bsx(bios_data, slot_data=None, bios_ram=None,
 	"bios_data" must be a string containing the uncompressed, de-interleaved,
 	headerless ROM image of the BS-X base unit cartridge.
 
-	"slot_data" must be a string containing the uncompressed, de-interleaved,
+	"slot_data" should be a string containing the uncompressed, de-interleaved,
 	headerless ROM image of the cartridge loaded inside the BS-X base
 	cartridge's slot. If not supplied or None, the slot will be left empty.
 
@@ -564,7 +564,8 @@ def load_cartridge_bsx(bios_data, slot_data=None, bios_ram=None,
 
 	"bios_mapping" should be a string containing an XML document describing the
 	memory-mapping for the BS-X base unit cartridge. If not supplied or None,
-	a guessed mapping will be used, which should be accurate.
+	a guessed mapping will be used (which is accurate for the offical BS-X base
+	unit cartridge).
 
 	"slot_mapping" should be a string containing an XML document describing the
 	memory-mapping for the cartridge loaded inside the BS-X base unit
@@ -596,16 +597,16 @@ def load_cartridge_sufami_turbo(bios_data, slot_a_data=None, slot_b_data=None,
 	"bios_data" must be a string containing the uncompressed, de-interleaved,
 	headerless ROM image of the Sufami Turbo cartridge.
 
-	"slot_a_data" must be a string containing the uncompressed, de-interleaved,
-	headerless ROM image of the cartridge loaded into the 'A' slot of the
-	Sufami Turbo cartridge. This is the actual game that will play. If not
-	supplied or left empty, no cartridge will be loaded in this slot.
+	"slot_a_data" should be a string containing the uncompressed,
+	de-interleaved, headerless ROM image of the cartridge loaded into the 'A'
+	slot of the Sufami Turbo cartridge. This is the actual game that will play.
+	If not supplied or left empty, no cartridge will be loaded in this slot.
 
-	"slot_b_data" must be a string containing the uncompressed, de-interleaved,
-	headerless ROM image of the cartridge loaded into the 'B' slot of the
-	Sufami Turbo cartridge. This game's data will be available to the game in
-	slot 'A'. If not supplied or left empty, no cartridge will be loaded in
-	this slot.
+	"slot_b_data" should be a string containing the uncompressed,
+	de-interleaved, headerless ROM image of the cartridge loaded into the 'B'
+	slot of the Sufami Turbo cartridge. This game's data will be available to
+	the game in slot 'A'. If not supplied or left empty, no cartridge will be
+	loaded in this slot.
 
 	"slot_a_sram" should be a string containing the SRAM data saved from the
 	previous time the cartridge in slot 'A' was loaded. If not supplied or
@@ -617,8 +618,8 @@ def load_cartridge_sufami_turbo(bios_data, slot_a_data=None, slot_b_data=None,
 
 	"bios_mapping" should be a string containing an XML document describing the
 	memory-mapping for the Sufami Turbo base cartridge. If not supplied or
-	None, a guessed mapping will be used (the guess should be correct for all
-	licenced games released in all regions).
+	None, a guessed mapping will be used (which is correct for the official
+	Sufami Turbo cartridge).
 
 	"slot_a_mapping" should be a string containing an XML document describing
 	the memory-mapping for the cartridge loaded in slot 'A'.  If not supplied
