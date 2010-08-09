@@ -1,7 +1,3 @@
 Things to implement in python-snes:
  - It's safe to call set_controller_port_device() anytime.
  - Add a parser/serialiser for bsnes movie files?
-
-Things to pester byuu about:
- - Actually passing NULL as the slot data parameter to load_bsx,
-   load_slotted_bsx, load_sufami_turbo or load_super_game_boy causes a segfault.
