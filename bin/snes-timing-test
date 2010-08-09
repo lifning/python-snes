@@ -2,6 +2,10 @@
 import sys, time
 from snes import core
 
+if len(sys.argv) != 2:
+	print >> sys.stderr, "usage: %s <game.sfc>" % (sys.argv[0],)
+	sys.exit(1)
+
 gamePath = sys.argv[1]
 
 with open(gamePath, "rb") as handle:
@@ -13,6 +17,14 @@ refreshRate = core.get_refresh_rate()
 print "Intended refresh-rate: %d" % (refreshRate,)
 
 runCount = refreshRate * 10 # 10 emulated seconds.
+
+# For interest's sake, let's log whatever information we can find about this
+# cart.
+memory_types = [
+		memtype for memtype in core.VALID_MEMORY_TYPES
+		if core._memory_to_string(memtype) is not None
+	]
+print "Cartridge uses memory types: %r" % (memory_types,)
 
 start = time.clock()
 for x in range(runCount):
