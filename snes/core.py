@@ -10,11 +10,11 @@ something like this:
 	   needs controller input.
 	2. Call one of the load_cartridge_* methods to give the emulated SNES
 	   a cartridge image to run.
-	3. Call get_region() to find out whether the loaded cartridge is PAL or
-	   NTSC.
-	4. Call run() fifty (PAL) or sixty (NTSC) times a second to cause emulation
-	   to occur. Process the output and supply input as the registered
-	   callbacks are called.
+	3. Call get_refresh_rate() to determine the intended refresh rate of the
+	   loaded cartridge.
+	4. Call run() to cause emulation to occur. Process the output and supply
+	   input as the registered callbacks are called. For real-time playback,
+	   call run() at the refresh rate returned by get_refresh_rate().
 	5. Call unload() to free the resources associated with the loaded
 	   cartridge, and return the contents of the cartridge's non-volatile
 	   storage for use with the next session.
@@ -61,10 +61,6 @@ MEMORY_GAME_BOY_RAM = 6
 MEMORY_GAME_BOY_RTC = 7
 
 VALID_MEMORY_TYPES = range(8)
-
-# Return values for get_region()
-NTSC = False
-PAL = True
 
 PORT_1 = False
 PORT_2 = True
@@ -374,15 +370,21 @@ def unload():
 	W.unload()
 	return res
 
-def get_region():
+def get_refresh_rate():
 	"""
-	Determine the intended region of the loaded cartridge.
+	Return the intended refresh-rate of the loaded cartridge.
 
-	Returns one of the constants NTSC or PAL. NTSC means that you should call
-	run() 60 times a second for real-time emulation, PAL means that you should
-	call run() 50 times a second.
+	Returns either the integer 50 or the integer 60, depending on whether the
+	loaded cartridge was designed for a 50Hz region (PAL territories) or a 60Hz
+	region (NTSC territories, and Brazil's PAL60).
 	"""
-	return W.get_region()
+	region = W.get_region()
+	if region == False:
+		# NTSC, or PAL60
+		return 60
+	else:
+		# PAL50
+		return 50
 
 def serialize():
 	"""

@@ -1,5 +1,3 @@
- - get_region() is really desired_refresh_rate() and should return 50 or 60.
-   Brazilian PAL60 games return the "NTSC" value even though they're not NTSC.
  - Super Gameboy has neither SRAM nor RTC.
  - It's safe to call set_controller_port_device() anytime.
  - Controller buttons return 1 for 'pressed' and 0 for 'not pressed'.
