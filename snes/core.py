@@ -295,8 +295,8 @@ def set_controller_port_device(port, device):
 	callback passed to set_input_state_cb() will be called with the appropriate
 	device, index and id parameters.
 
-	If this function is never called, the default is to have no controllers
-	connected at all. (TODO: is this true?)
+	If this function is never called, the default is to have a DEVICE_JOYPAD
+	connected to both ports.
 
 	"port" must be either the PORT_1 or PORT_2 constants, describing which port
 	the given controller will be connected to. If "port" is set to "PORT_1",
