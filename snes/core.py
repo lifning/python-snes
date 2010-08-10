@@ -698,5 +698,3 @@ def load_cartridge_super_game_boy(bios_data, dmg_data=None, dmg_sram=None,
 	if dmg_rtc is not None:
 		_string_to_memory(dmg_rtc, MEMORY_GAME_BOY_RTC)
 
-
-# TODO: Other cart loading methods.
