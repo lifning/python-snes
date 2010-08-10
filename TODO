@@ -1,3 +1,6 @@
 Things to implement in python-snes:
  - It's safe to call set_controller_port_device() anytime.
  - Add a parser/serialiser for bsnes movie files?
+ - Replace the ctypes-based _snes_wrapper with a real C extension. Partially
+   for simplicity, partially for the learning experience partially to include
+   a fast 16-to-32-bit video converter.
