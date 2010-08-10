@@ -278,13 +278,6 @@ def set_input_state_cb(callback):
 	_input_state_wrapper = W.input_state_cb_t(callback)
 	W.set_input_state_cb(_input_state_wrapper)
 
-# Because libsnes crashes if somebody calls "run" without setting up
-# callbacks, let's set them to dummy functions by default.
-set_video_refresh_cb(lambda *args: None)
-set_audio_sample_cb(lambda *args: None)
-set_input_poll_cb(lambda: None)
-set_input_state_cb(lambda *args: 0)
-
 def set_controller_port_device(port, device):
 	"""
 	Connects the given device to the given controller port.
