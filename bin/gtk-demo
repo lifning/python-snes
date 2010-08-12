@@ -15,7 +15,7 @@ window = gtk.Window(gtk.WINDOW_TOPLEVEL)
 vbox = gtk.VBox()
 canvas = gtk.DrawingArea()
 
-window.set_title("bsnes/Python")
+window.set_title("libsnes/Python")
 
 window.add(vbox)
 vbox.show()
