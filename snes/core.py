@@ -111,6 +111,9 @@ DEVICE_ID_JUSTIFIER_Y = 1
 DEVICE_ID_JUSTIFIER_TRIGGER = 2
 DEVICE_ID_JUSTIFIER_START = 3
 
+# This keeps track of whether a cartridge is loaded.
+_cart_loaded = False
+
 # This keeps track of which cheats the user wants to apply to this game.
 _loaded_cheats = {}
 
@@ -160,6 +163,16 @@ def _string_to_memory(data, mem_type):
 class SNESException(Exception):
 	"""
 	Something went wrong with libsnes.
+	"""
+
+class NoCartridgeLoaded(SNESException):
+	"""
+	Can't do this without a loaded cartridge.
+	"""
+
+class CartridgeAlreadyLoaded(SNESException):
+	"""
+	Can't do this with a loaded cartridge.
 	"""
 
 # ctypes documentation says "Make sure you keep references to CFUNCTYPE objects
@@ -326,7 +339,11 @@ def power():
 
 	Requires that a cartridge be loaded.
 	"""
-	W.power()
+	if _cart_loaded:
+		W.power()
+	else:
+		raise NoCartridgeLoaded("Can't power-cycle before a cartridge is "
+				"loaded!")
 
 def reset():
 	"""
@@ -334,7 +351,10 @@ def reset():
 
 	Requires that a cartridge be loaded.
 	"""
-	W.reset()
+	if _cart_loaded:
+		W.reset()
+	else:
+		raise NoCartridgeLoaded("Can't reset before a cartridge is loaded!")
 
 def run():
 	"""
@@ -362,9 +382,17 @@ def unload():
 
 	Requires that a cartridge be loaded.
 	"""
-	res = [_memory_to_string(t) for t in VALID_MEMORY_TYPES]
-	W.unload()
-	return res
+	global _loaded_cheats
+	global _cart_loaded
+
+	if _cart_loaded:
+		res = [_memory_to_string(t) for t in VALID_MEMORY_TYPES]
+		W.unload()
+		_loaded_cheats = {}
+		_cart_loaded = False
+		return res
+	else:
+		raise NoCartridgeLoaded("No cartridge loaded.")
 
 def get_refresh_rate():
 	"""
@@ -478,6 +506,10 @@ def load_cartridge_normal(data, sram=None, rtc=None, mapping=None):
 	a guessed mapping will be used (the guess should be correct for all
 	licenced games released in all regions).
 	"""
+	global _cart_loaded
+	if _cart_loaded:
+		raise CartridgeAlreadyLoaded("Cartridge already loaded.")
+
 	W.load_cartridge_normal(mapping, ctypes.cast(data, W.data_p), len(data))
 
 	if sram is not None:
@@ -485,6 +517,8 @@ def load_cartridge_normal(data, sram=None, rtc=None, mapping=None):
 
 	if rtc is not None:
 		_string_to_memory(rtc, MEMORY_CARTRIDGE_RTC)
+
+	_cart_loaded = True
 
 def load_cartridge_bsx_slotted(base_data, slot_data=None, base_sram=None,
 		base_rtc=None,  base_mapping=None, slot_mapping=None):
@@ -519,6 +553,10 @@ def load_cartridge_bsx_slotted(base_data, slot_data=None, base_sram=None,
 	If not supplied or None, a guessed mapping will be used (the guess should
 	be correct for all licenced games released in all regions).
 	"""
+	global _cart_loaded
+	if _cart_loaded:
+		raise CartridgeAlreadyLoaded("Cartridge already loaded.")
+
 	if slot_data is None:
 		slot_length = 0
 	else:
@@ -534,6 +572,8 @@ def load_cartridge_bsx_slotted(base_data, slot_data=None, base_sram=None,
 
 	if base_rtc is not None:
 		_string_to_memory(base_rtc, MEMORY_CARTRIDGE_RTC)
+
+	_cart_loaded = True
 
 def load_cartridge_bsx(bios_data, slot_data=None, bios_ram=None,
 		bios_pram=None, bios_mapping=None, slot_mapping=None):
@@ -568,6 +608,10 @@ def load_cartridge_bsx(bios_data, slot_data=None, bios_ram=None,
 	cartridge. If not supplied or None, a guessed mapping will be used (the
 	guess should be correct for all licenced games released in all regions).
 	"""
+	global _cart_loaded
+	if _cart_loaded:
+		raise CartridgeAlreadyLoaded("Cartridge already loaded.")
+
 	if slot_data is None:
 		slot_length = 0
 	else:
@@ -583,6 +627,8 @@ def load_cartridge_bsx(bios_data, slot_data=None, bios_ram=None,
 
 	if bios_pram is not None:
 		_string_to_memory(bios_pram, MEMORY_BSX_PRAM)
+
+	_cart_loaded = True
 
 def load_cartridge_sufami_turbo(bios_data, slot_a_data=None, slot_b_data=None,
 		slot_a_sram=None, slot_b_sram=None, bios_mapping=None,
@@ -627,6 +673,10 @@ def load_cartridge_sufami_turbo(bios_data, slot_a_data=None, slot_b_data=None,
 	or None, a guessed mapping will be used (the guess should be correct for
 	all licenced games released in all regions).
 	"""
+	global _cart_loaded
+	if _cart_loaded:
+		raise CartridgeAlreadyLoaded("Cartridge already loaded.")
+
 	if slot_a_data is None:
 		slot_a_length = 0
 	else:
@@ -648,6 +698,8 @@ def load_cartridge_sufami_turbo(bios_data, slot_a_data=None, slot_b_data=None,
 
 	if slot_b_sram is not None:
 		_string_to_memory(slot_b_sram, MEMORY_SUFAMI_TURBO_B_RAM)
+
+	_cart_loaded = True
 
 def load_cartridge_super_game_boy(bios_data, dmg_data=None, dmg_sram=None,
 		dmg_rtc=None, bios_mapping=None, dmg_mapping=None):
@@ -681,6 +733,9 @@ def load_cartridge_super_game_boy(bios_data, dmg_data=None, dmg_sram=None,
 	a guessed mapping will be used (which should be correct for all licenced
 	games released in all regions).
 	"""
+	global _cart_loaded
+	if _cart_loaded:
+		raise CartridgeAlreadyLoaded("Cartridge already loaded.")
 
 	if dmg_data is None:
 		dmg_length = 0
@@ -697,4 +752,6 @@ def load_cartridge_super_game_boy(bios_data, dmg_data=None, dmg_sram=None,
 
 	if dmg_rtc is not None:
 		_string_to_memory(dmg_rtc, MEMORY_GAME_BOY_RTC)
+
+	_cart_loaded = True
 
