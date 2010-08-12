@@ -7,9 +7,11 @@ from snes import core
 from snes.util import snes_framebuffer_to_RGBX8888
 
 def _snes_to_image(data, width, height, hires, interlace, overscan, pitch):
-	res = Image.new("RGB", (width, height))
+	res = Image.fromstring("RGBX", (width, height),
+			snes_framebuffer_to_RGBX8888(data, width, height, pitch))
 
-	res.putdata(snes_framebuffer_to_RGBX8888(data, width, height, pitch))
+	# Not every file format supports RGBX, but they all support RGB.
+	res = res.convert("RGB")
 
 	return res
 
