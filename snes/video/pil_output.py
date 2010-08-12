@@ -4,12 +4,12 @@ Python Imaging Library (PIL) output for SNES Video.
 
 from PIL import Image
 from snes import core
-from snes.util import snes_framebuffer_to_XRGB8888
+from snes.util import snes_framebuffer_to_RGBX8888
 
 def _snes_to_image(data, width, height, hires, interlace, overscan, pitch):
 	res = Image.new("RGB", (width, height))
 
-	res.putdata(snes_framebuffer_to_XRGB8888(data, width, height, pitch))
+	res.putdata(snes_framebuffer_to_RGBX8888(data, width, height, pitch))
 
 	return res
 
