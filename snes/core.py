@@ -368,7 +368,10 @@ def run():
 
 	Requires that a cartridge be loaded.
 	"""
-	W.run()
+	if _cart_loaded:
+		W.run()
+	else:
+		raise NoCartridgeLoaded("Can't run before a cartridge is loaded!")
 
 def unload():
 	"""

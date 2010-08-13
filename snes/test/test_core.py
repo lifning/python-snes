@@ -11,16 +11,6 @@ class TestSNESCore(util.SNESTestCase):
 	useful for testing any sanity-checking in snes.core.
 	"""
 
-	def test_get_refresh_rate(self):
-		"""
-		libsnes recognises the test rom as 60Hz.
-		"""
-		self._loadTestCart()
-		self.assertEqual(
-				core.get_refresh_rate(),
-				60,
-			)
-
 	def test_video_callback_called(self):
 		"""
 		Video callback is called once per frame.
@@ -68,7 +58,7 @@ class TestSNESCore(util.SNESTestCase):
 	
 	def test_power(self):
 		"""
-		We can hard-reset without problems.
+		We can hard-reset without crashing.
 		"""
 		# Power-cycling with no ROM loaded segfaults libsnes, so protect
 		# against it.
@@ -86,13 +76,13 @@ class TestSNESCore(util.SNESTestCase):
 
 	def test_reset(self):
 		"""
-		We can soft-reset without problems.
+		We can soft-reset without crashing.
 		"""
 		# Resetting with no ROM loaded segfaults libsnes, so protect
 		# against it.
 		self.assertRaises(core.NoCartridgeLoaded, core.reset)
 
-		# Try power-cycling with a ROM loaded.
+		# Try resetting with a ROM loaded.
 		self._loadTestCart()
 		core.reset()
 
@@ -102,6 +92,48 @@ class TestSNESCore(util.SNESTestCase):
 		core.run()
 		core.reset()
 
+	def test_run(self):
+		"""
+		We can run a single frame without crashing.
+		"""
+		# Running the SNES with no ROM loaded segfaults libsnes, so protect
+		# against it.
+		self.assertRaises(core.NoCartridgeLoaded, core.run)
+
+		# After loading a ROM, we can run frames.
+		self._loadTestCart()
+		core.run()
+
+	def test_unload(self):
+		"""
+		We can unload a loaded cart without crashing.
+		"""
+		# Before a cartridge is loaded, we can't unload anything.
+		self.assertRaises(core.NoCartridgeLoaded, core.unload)
+
+		# After loading a cart, we can unload it.
+		self._loadTestCart()
+		memory = core.unload()
+
+		# Our test-cart doesn't use any non-volatile storage, so unload()
+		# shouldn't return anything.
+		self.assertEqual(memory,
+				[None, None, None, None, None, None, None, None],
+			)
+
+		# After unloading a cart, things that require a loaded cart should
+		# complain.
+		self.assertRaises(core.NoCartridgeLoaded, core.run)
+
+	def test_get_refresh_rate(self):
+		"""
+		libsnes recognises the test rom as 60Hz.
+		"""
+		self._loadTestCart()
+		self.assertEqual(
+				core.get_refresh_rate(),
+				60,
+			)
 
 
 if __name__ == "__main__":
