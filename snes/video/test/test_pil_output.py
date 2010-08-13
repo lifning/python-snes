@@ -1,9 +1,13 @@
 #!/usr/bin/python
 import unittest
+import os.path
 from PIL import Image
 from snes import core
 from snes.test import util
 from snes.video import pil_output
+
+TEST_PATH = os.path.abspath(os.path.dirname(__file__))
+
 
 class TestPILOutput(util.SNESTestCase):
 
@@ -49,14 +53,13 @@ class TestPILOutput(util.SNESTestCase):
 		core.run()
 
 		self.assertEqual(len(result), 1)
-		image = result[0]
-		self.assertEqual(image.mode, "RGB")
-		self.assertEqual(image.size, (256,224))
+		actual = result[0]
+		self.assertEqual(actual.mode, "RGB")
+		self.assertEqual(actual.size, (256,224))
 
-		image.save("test.bmp")
+		expected = Image.open(os.path.join(TEST_PATH, "col15.bmp"))
 
-		# FIXME: Someday we'll be clever enough to compare frame content. Not
-		# today, though.
+		self.assertImagesEqual(actual, expected)
 
 
 class TestImageComparison(unittest.TestCase):
