@@ -4,16 +4,11 @@ Python Imaging Library (PIL) output for SNES Video.
 
 from PIL import Image
 from snes import core
-from snes.util import snes_framebuffer_to_RGBX8888
+from snes.util import snes_framebuffer_to_RGB888
 
 def _snes_to_image(data, width, height, hires, interlace, overscan, pitch):
-	res = Image.fromstring("RGBX", (width, height),
-			snes_framebuffer_to_RGBX8888(data, width, height, pitch))
-
-	# Not every file format supports RGBX, but they all support RGB.
-	res = res.convert("RGB")
-
-	return res
+	return Image.fromstring("RGB", (width, height),
+			snes_framebuffer_to_RGB888(data, width, height, pitch))
 
 def set_video_refresh_cb(callback):
 	"""

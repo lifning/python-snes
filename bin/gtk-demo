@@ -4,7 +4,7 @@ import pygtk
 pygtk.require("2.0")
 import gtk, gobject
 from snes import core
-from snes.util import snes_framebuffer_to_RGBX8888
+from snes.util import snes_framebuffer_to_RGB888
 
 game_path = sys.argv[1]
 
@@ -42,8 +42,8 @@ def paint_frame(data, width, height, hires, interlace, overscan, pitch):
 		framecount = 0
 		start = now
 
-	drawable.draw_rgb_32_image(gc, 0,0, width, height, gtk.gdk.RGB_DITHER_NONE,
-			snes_framebuffer_to_RGBX8888(data, width, height, pitch), -1)
+	drawable.draw_rgb_image(gc, 0,0, width, height, gtk.gdk.RGB_DITHER_NONE,
+			snes_framebuffer_to_RGB888(data, width, height, pitch), -1)
 
 	framecount += 1
 
