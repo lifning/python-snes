@@ -5,10 +5,11 @@ from PIL import Image
 from snes import core
 from snes.video.pil_output import image_difference
 
-TEST_ROM_PATH = os.path.join(
-		os.path.abspath(os.path.dirname(__file__)),
-		"col15", "col15.sfc",
-	)
+TEST_PATH = os.path.abspath(os.path.dirname(__file__))
+TEST_ROM_PATH = os.path.join(TEST_PATH, "col15", "col15.sfc")
+
+TEST_GOOD_FRAME_PATH = os.path.join(TEST_PATH, "col15", "col15.bmp")
+TEST_BAD_FRAME_PATH  = os.path.join(TEST_PATH, "bad.bmp")
 
 
 class SNESTestCase(unittest.TestCase):

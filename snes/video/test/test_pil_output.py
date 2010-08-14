@@ -6,9 +6,6 @@ from snes import core
 from snes.test import util
 from snes.video import pil_output
 
-TEST_PATH = os.path.abspath(os.path.dirname(__file__))
-
-
 class TestPILOutput(util.SNESTestCase):
 
 	def test_snes_to_image(self):
@@ -57,7 +54,7 @@ class TestPILOutput(util.SNESTestCase):
 		self.assertEqual(actual.mode, "RGB")
 		self.assertEqual(actual.size, (256,224))
 
-		expected = Image.open(os.path.join(TEST_PATH, "col15.bmp"))
+		expected = Image.open(util.TEST_GOOD_FRAME_PATH)
 
 		self.assertImagesEqual(actual, expected)
 
