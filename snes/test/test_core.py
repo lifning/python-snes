@@ -43,11 +43,9 @@ class TestSNESCore(util.SNESTestCase):
 
 		self._loadTestCart()
 		core.run()
-		self.assertEqual(results[0], 0)
+		self.assertEqual(results[0], 490)
 		core.run()
-		self.assertEqual(results[0], 533)
-		core.run()
-		self.assertEqual(results[0], 1066)
+		self.assertEqual(results[0], 1023)
 
 	# TODO: Check set_input_poll_cb if we figure out whether the callback is
 	# supposed to be called even if the running SNES software isn't asking for
