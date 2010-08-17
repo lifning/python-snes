@@ -254,6 +254,15 @@ def set_input_state_cb(callback):
 	"""
 	Sets the callback that reports the current state of input devices.
 
+	The callback may be called multiple times per frame with the same
+	parameters.
+
+	The callback will not be called if the loaded cartridge does not try to
+	probe the controllers.
+
+	The callback will not be called for a particular port if DEVICE_NONE is
+	connected to it.
+
 	The callback should accept the following parameters:
 
 		"port" is one of the constants PORT_1 or PORT_2, describing which
@@ -292,8 +301,13 @@ def set_controller_port_device(port, device):
 	callback passed to set_input_state_cb() will be called with the appropriate
 	device, index and id parameters.
 
-	If this function is never called, the default is to have a DEVICE_JOYPAD
-	connected to both ports.
+	Whenever you call a load_cartridge_* function a DEVICE_JOYPAD will be
+	connected to both ports, and devices previously connected using this
+	function will be disconnected.
+
+	It's generally safe (that is, it won't crash or segfault) to call this
+	function any time, but for sensible operation, don't call it from inside
+	the registered input state callback.
 
 	"port" must be either the PORT_1 or PORT_2 constants, describing which port
 	the given controller will be connected to. If "port" is set to "PORT_1",
@@ -304,7 +318,8 @@ def set_controller_port_device(port, device):
 	describing what kind of device will be connected to the given port.
 	The devices are:
 
-		- DEVICE_NONE: No device is connected to this port.
+		- DEVICE_NONE: No device is connected to this port. The registered
+		  input state callback will not be called for this port.
 		- DEVICE_JOYPAD: A standard SNES gamepad.
 		- DEVICE_MULTITAP: A multitap controller, which acts like
 		  4 DEVICE_JOYPADs. Your input state callback will be passed "id"
@@ -317,9 +332,6 @@ def set_controller_port_device(port, device):
 		- DEVICE_JUSTIFIERS: Two Konami Justifier light-gun devices,
 		  daisy-chained together (only works properly in port 2). Your input
 		  state callback will be passed "id" parameters 0 and 1.
-
-	TODO: Is there any time it's not safe to call this method? For example, is
-	it safe to call this method from inside the input state callback?
 	"""
 	W.set_controller_port_device(port, device)
 

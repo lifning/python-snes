@@ -5,8 +5,6 @@ Things to implement in python-snes:
    a fast 16-to-32-bit video converter.
 
 Things to check:
- - Is it safe to change the connected input devices while bsnes is retrieving
-   input device state?
  - Currently, the input_poll callback is called every frame, but the
    input_state callback is only called if the software running on the emulated
    SNES is checking for input (I think). I'd have expected that if the SNES
