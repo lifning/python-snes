@@ -43,9 +43,6 @@ Constants defined in this module:
 	DEVICE_ID_* constants represent the button and axis inputs on various
 	controllers. They will be given to the callback passed to
 	set_input_state_cb().
-
-	PORT_2_ONLY_DEVICES is a list containing DEVICE_* constants for devices
-	that only work properly when plugged into port 2.
 """
 import ctypes
 from snes import _snes_wrapper as W
@@ -74,12 +71,6 @@ DEVICE_JUSTIFIER = 5
 DEVICE_JUSTIFIERS = 6
 
 VALID_DEVICES = range(7)
-
-PORT_2_ONLY_DEVICES = [
-		DEVICE_SUPER_SCOPE,
-		DEVICE_JUSTIFIER,
-		DEVICE_JUSTIFIERS,
-	]
 
 DEVICE_ID_JOYPAD_B = 0
 DEVICE_ID_JOYPAD_Y = 1
@@ -306,13 +297,12 @@ def set_controller_port_device(port, device):
 
 	"port" must be either the PORT_1 or PORT_2 constants, describing which port
 	the given controller will be connected to. If "port" is set to "PORT_1",
-	the "device" parameter must not be any of the devices listed in
-	PORT_2_ONLY_DEVICES.
+	the "device" parameter should not be DEVICE_SUPER_SCOPE, DEVICE_JUSTIFIER
+	or DEVICE_JUSTIFIERS.
 
 	"device" must be one of the DEVICE_* (but not DEVICE_ID_*) constants,
-	describing what kind of device will be connected to the given port. If
-	"port" is PORT_1, "device" must not be one of the devices in
-	PORT_2_ONLY_DEVICES. The devices are:
+	describing what kind of device will be connected to the given port.
+	The devices are:
 
 		- DEVICE_NONE: No device is connected to this port.
 		- DEVICE_JOYPAD: A standard SNES gamepad.
@@ -320,17 +310,17 @@ def set_controller_port_device(port, device):
 		  4 DEVICE_JOYPADs. Your input state callback will be passed "id"
 		  parameters between 0 and 3.
 		- DEVICE_MOUSE: A SNES mouse controller, as shipped with Mario Paint.
-		- DEVICE_SUPER_SCOPE: A Nintendo Super Scope light-gun device.
-		- DEVICE_JUSTIFIER: A Konami Justifier light-gun device.
+		- DEVICE_SUPER_SCOPE: A Nintendo Super Scope light-gun device (only
+		  works properly in port 2).
+		- DEVICE_JUSTIFIER: A Konami Justifier light-gun device (only works
+		  properly in port 2).
 		- DEVICE_JUSTIFIERS: Two Konami Justifier light-gun devices,
-		  daisy-chained together. Your input state callback will be passed "id"
-		  parameters 0 and 1.
+		  daisy-chained together (only works properly in port 2). Your input
+		  state callback will be passed "id" parameters 0 and 1.
 
 	TODO: Is there any time it's not safe to call this method? For example, is
 	it safe to call this method from inside the input state callback?
 	"""
-	if port == PORT_1 and device in PORT_2_ONLY_DEVICES:
-		raise SNESException("Cannot use device %r in port 1" % (device,))
 	W.set_controller_port_device(port, device)
 
 def power():
