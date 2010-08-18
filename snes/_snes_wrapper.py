@@ -148,3 +148,9 @@ libsnes.snes_init()
 libsnes.snes_term.restype = None
 libsnes.snes_term.argtypes = []
 atexit.register(libsnes.snes_term)
+
+# It's sometimes useful to reset libsnes, so we'll export a function that does
+# both.
+def libsnes_reset():
+	libsnes.snes_term()
+	libsnes.snes_init()

@@ -760,3 +760,20 @@ def load_cartridge_super_game_boy(bios_data, dmg_data=None, dmg_sram=None,
 
 	_cart_loaded = True
 
+def libsnes_reset():
+	"""
+	Unload and reload the libsnes library.
+
+	This is useful if you want to be completely, absolutely sure that no state
+	from one emulation session leaks into the next.
+
+	This unloads any loaded cartridge, removes any registered callbacks,
+	discards any set cheats, etc.
+	"""
+	global _cart_loaded
+	global _loaded_cheats
+
+	W.libsnes_reset()
+
+	_cart_loaded = False
+	_loaded_cheats = {}

@@ -10,9 +10,6 @@ Things to check:
    SNES is checking for input (I think). I'd have expected that if the SNES
    wasn't checking for input, libsnes wouldn't call input_poll, so I'm not sure
    if this is deliberate or accidental.
- - Can you call snes_term() followed by snes_init() to reset basic libsnes
-   things like 'what device is connected to which port' and 'what callbacks are
-   registered', I wonder.
  - What happens when you try and load save data (SRAM/RTC) into libsnes before
    loading a cart?
  - What happens when you try to load save data that's too large into libsnes,
