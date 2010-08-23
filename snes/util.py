@@ -16,7 +16,7 @@ def _decode_pixel(pixel):
 			(b | (b >> 5)),
 		)
 
-rgb_lookup = [_decode_pixel(p) for p in xrange(32768)]
+_rgb_lookup = [_decode_pixel(_p) for _p in xrange(32768)]
 
 def snes_framebuffer_to_RGB888(data, width, height, pitch):
 	"""
@@ -26,7 +26,7 @@ def snes_framebuffer_to_RGB888(data, width, height, pitch):
 	best language to use for bitbanging, it seems.
 	"""
 	res = ''.join(
-			rgb_lookup[data[pitch * y + x]]
+			_rgb_lookup[data[pitch * y + x]]
 			for y in xrange(height)
 			for x in xrange(width)
 		)
