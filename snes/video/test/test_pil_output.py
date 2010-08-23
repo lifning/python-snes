@@ -2,7 +2,6 @@
 import unittest
 import os.path
 from PIL import Image
-from snes import core
 from snes.test import util
 from snes.video import pil_output
 
@@ -34,8 +33,8 @@ class TestPILOutput(util.SNESTestCase):
 		# Load a test cart and run it for a second so we can look at something
 		# other than a black screen.
 		self._loadTestCart()
-		for _ in xrange(core.get_refresh_rate()):
-			core.run()
+		for _ in xrange(self.core.get_refresh_rate()):
+			self.core.run()
 
 		result = []
 		def video_refresh(image):
@@ -44,10 +43,10 @@ class TestPILOutput(util.SNESTestCase):
 			# somewhere so we can examine it after the callbacks return.
 			result.append(image)
 
-		pil_output.set_video_refresh_cb(video_refresh)
+		pil_output.set_video_refresh_cb(self.core, video_refresh)
 
 		# Crank the handle one more time so we get our video frame.
-		core.run()
+		self.core.run()
 
 		self.assertEqual(len(result), 1)
 		actual = result[0]

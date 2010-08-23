@@ -3,8 +3,17 @@ import sys, time, array
 import pygtk
 pygtk.require("2.0")
 import gtk, gobject
-from snes import core
+from snes import core as C
 from snes.util import snes_framebuffer_to_RGB888
+
+core = None
+for libname in C.guess_library_name():
+	try:
+		core = C.EmulatedSNES(libname)
+	except OSError:
+		# Library not found
+		pass
+
 
 game_path = sys.argv[1]
 

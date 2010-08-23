@@ -58,7 +58,7 @@ class TestFrameTest(unittest.TestCase):
 			)
 
 
-class TestTestScript(unittest.TestCase):
+class TestTestScript(util.SNESTestCase):
 
 	def _make_dummy_test_script(self):
 		ts = testing.TestScript()
@@ -78,19 +78,20 @@ class TestTestScript(unittest.TestCase):
 
 		# Before we've told it what cartrige to load, calling ts.test() raises
 		# an exception.
-		self.assertRaises(testing.TestSetupError, ts.test().next)
+		self.assertRaises(testing.TestSetupError, ts.test(self.core).next)
 
 		with open(util.TEST_ROM_PATH, "rb") as handle:
 			ts.load_cartridge_normal(handle.read())
 
 		# Before we've told it what controllers to use, calling ts.test() still
 		# raises an exception.
-		self.assertRaises(testing.TestSetupError, ts.test().next)
+		self.assertRaises(testing.TestSetupError, ts.test(self.core).next)
 
 		ts.set_controllers(core.DEVICE_NONE, core.DEVICE_NONE)
 
 		# Now it should work.
-		list(ts.test())
+		# FIXME: Make some assertion about the result.
+		list(ts.test(self.core))
 
 	def test_no_tests(self):
 		"""
@@ -100,7 +101,7 @@ class TestTestScript(unittest.TestCase):
 
 		self.assertEqual(ts.count_tests(), 0)
 
-		testiter = ts.test()
+		testiter = ts.test(self.core)
 
 		self.assertRaises(StopIteration, testiter.next)
 
@@ -114,7 +115,7 @@ class TestTestScript(unittest.TestCase):
 
 		self.assertEqual(ts.count_tests(), 2)
 
-		results = list(ts.test())
+		results = list(ts.test(self.core))
 
 		self.assertEqual(len(results), 2)
 

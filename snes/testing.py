@@ -4,17 +4,18 @@ Classes and functions for testing SNES software.
 from tempfile import mkdtemp
 import os.path
 from PIL import Image
-from snes import core
+from snes import core as C
+from snes import exceptions as EX
 from snes.video import pil_output
 
 DEVICE_NAME_TO_ID = {
-		"none": core.DEVICE_NONE,
-		"joypad": core.DEVICE_JOYPAD,
-		"multitap": core.DEVICE_MULTITAP,
-		"mouse": core.DEVICE_MOUSE,
-		"superscope": core.DEVICE_SUPER_SCOPE,
-		"justifier": core.DEVICE_JUSTIFIER,
-		"justifiers": core.DEVICE_JUSTIFIERS,
+		"none": C.DEVICE_NONE,
+		"joypad": C.DEVICE_JOYPAD,
+		"multitap": C.DEVICE_MULTITAP,
+		"mouse": C.DEVICE_MOUSE,
+		"superscope": C.DEVICE_SUPER_SCOPE,
+		"justifier": C.DEVICE_JUSTIFIER,
+		"justifiers": C.DEVICE_JUSTIFIERS,
 	}
 
 
@@ -93,7 +94,7 @@ class TestScript(object):
 		self.frametests = {}
 		self._max_frame_number = 0
 
-	def test(self):
+	def test(self, core):
 		"""
 		Set up the SNES, run our per-frame tests
 
@@ -111,7 +112,7 @@ class TestScript(object):
 
 		try:
 			core.unload()
-		except core.NoCartridgeLoaded:
+		except EX.NoCartridgeLoaded:
 			pass
 
 		core.set_video_refresh_cb(lambda *args: None)
@@ -119,11 +120,12 @@ class TestScript(object):
 		core.set_input_poll_cb(lambda: None)
 		core.set_input_state_cb(lambda *args: 0)
 
-		core.set_controller_port_device(core.PORT_1, self.port_1_device)
-		core.set_controller_port_device(core.PORT_2, self.port_2_device)
+		core.set_controller_port_device(C.PORT_1, self.port_1_device)
+		core.set_controller_port_device(C.PORT_2, self.port_2_device)
 
 		# Load the cartridge data as we've been instructed.
-		load_func, args, kwargs = self.cartridge_loading_info
+		func_name, args, kwargs = self.cartridge_loading_info
+		load_func = getattr(core, func_name)
 		load_func(*args, **kwargs)
 
 		# Because we want to capture the image frame handed to the callback,
@@ -139,7 +141,7 @@ class TestScript(object):
 				# Set up the SNES to capture the information we need to test
 				# this upcoming frame.
 				video_frame = []
-				pil_output.set_video_refresh_cb(video_refresh)
+				pil_output.set_video_refresh_cb(core, video_refresh)
 
 			core.run()
 
@@ -162,22 +164,22 @@ class TestScript(object):
 		"""
 		Load the given cartridge in the SNES while this test script runs.
 
-		See core.load_cartridge_normal() for details.
+		See core.EmulatedSNES.load_cartridge_normal() for details.
 		"""
 		self.cartridge_loading_info = (
-				core.load_cartridge_normal, args, kwargs)
+				"load_cartridge_normal", args, kwargs)
 
 	def set_controllers(self, port_1_device=None, port_2_device=None):
 		"""
 		Connect the given controllers to the SNES while this test script runs.
 		"""
 		if port_1_device is None:
-			self.port_1_device = core.DEVICE_NONE
+			self.port_1_device = C.DEVICE_NONE
 		else:
 			self.port_1_device = port_1_device
 
 		if port_2_device is None:
-			self.port_2_device = core.DEVICE_NONE
+			self.port_2_device = C.DEVICE_NONE
 		else:
 			self.port_2_device = port_2_device
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import unittest
-from snes import core
+from snes import exceptions as EX
 from snes.test import util
 
 class TestSNESCore(util.SNESTestCase):
@@ -19,12 +19,12 @@ class TestSNESCore(util.SNESTestCase):
 		def video_refresh(data, width, height, *args):
 			results.append("Got a video frame %dx%d" %
 					(width, height))
-		core.set_video_refresh_cb(video_refresh)
+		self.core.set_video_refresh_cb(video_refresh)
 
 		self._loadTestCart()
 
 		for _ in range(3):
-			core.run()
+			self.core.run()
 
 		self.assertEqual(results, [
 				"Got a video frame 256x224",
@@ -39,12 +39,12 @@ class TestSNESCore(util.SNESTestCase):
 		results = [0]
 		def audio_sample(left, right):
 			results[0] += 1
-		core.set_audio_sample_cb(audio_sample)
+		self.core.set_audio_sample_cb(audio_sample)
 
 		self._loadTestCart()
-		core.run()
+		self.core.run()
 		self.assertEqual(results[0], 490)
-		core.run()
+		self.core.run()
 		self.assertEqual(results[0], 1023)
 
 	# TODO: Check set_input_poll_cb if we figure out whether the callback is
@@ -60,17 +60,17 @@ class TestSNESCore(util.SNESTestCase):
 		"""
 		# Power-cycling with no ROM loaded segfaults libsnes, so protect
 		# against it.
-		self.assertRaises(core.NoCartridgeLoaded, core.power)
+		self.assertRaises(EX.NoCartridgeLoaded, self.core.power)
 
 		# Try power-cycling with a ROM loaded.
 		self._loadTestCart()
-		core.power()
+		self.core.power()
 
 		# Even after a few frames?
-		core.run()
-		core.run()
-		core.run()
-		core.power()
+		self.core.run()
+		self.core.run()
+		self.core.run()
+		self.core.power()
 
 	def test_reset(self):
 		"""
@@ -78,17 +78,17 @@ class TestSNESCore(util.SNESTestCase):
 		"""
 		# Resetting with no ROM loaded segfaults libsnes, so protect
 		# against it.
-		self.assertRaises(core.NoCartridgeLoaded, core.reset)
+		self.assertRaises(EX.NoCartridgeLoaded, self.core.reset)
 
 		# Try resetting with a ROM loaded.
 		self._loadTestCart()
-		core.reset()
+		self.core.reset()
 
 		# Even after a few frames?
-		core.run()
-		core.run()
-		core.run()
-		core.reset()
+		self.core.run()
+		self.core.run()
+		self.core.run()
+		self.core.reset()
 
 	def test_run(self):
 		"""
@@ -96,22 +96,22 @@ class TestSNESCore(util.SNESTestCase):
 		"""
 		# Running the SNES with no ROM loaded segfaults libsnes, so protect
 		# against it.
-		self.assertRaises(core.NoCartridgeLoaded, core.run)
+		self.assertRaises(EX.NoCartridgeLoaded, self.core.run)
 
 		# After loading a ROM, we can run frames.
 		self._loadTestCart()
-		core.run()
+		self.core.run()
 
 	def test_unload(self):
 		"""
 		We can unload a loaded cart without crashing.
 		"""
 		# Before a cartridge is loaded, we can't unload anything.
-		self.assertRaises(core.NoCartridgeLoaded, core.unload)
+		self.assertRaises(EX.NoCartridgeLoaded, self.core.unload)
 
 		# After loading a cart, we can unload it.
 		self._loadTestCart()
-		memory = core.unload()
+		memory = self.core.unload()
 
 		# Our test-cart doesn't use any non-volatile storage, so unload()
 		# shouldn't return anything.
@@ -121,7 +121,7 @@ class TestSNESCore(util.SNESTestCase):
 
 		# After unloading a cart, things that require a loaded cart should
 		# complain.
-		self.assertRaises(core.NoCartridgeLoaded, core.run)
+		self.assertRaises(EX.NoCartridgeLoaded, self.core.run)
 
 	def test_get_refresh_rate(self):
 		"""
@@ -129,7 +129,7 @@ class TestSNESCore(util.SNESTestCase):
 		"""
 		self._loadTestCart()
 		self.assertEqual(
-				core.get_refresh_rate(),
+				self.core.get_refresh_rate(),
 				60,
 			)
 
