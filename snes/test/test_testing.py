@@ -47,14 +47,14 @@ class TestFrameTest(unittest.TestCase):
 
 		# Make a bad frame that differs in dimensions, so that we get a string
 		# difference that we can predict.
-		badFrame = self.goodFrame.resize( (512, 448) )
+		badFrame = self.goodFrame.resize( (256, 448) )
 
 		testiter = ft.test(badFrame)
 
 		self.assertEqual(
 				testiter.next(),
 				("video frame", False,
-					"Images have different sizes (512x448 vs. 256x224)"),
+					"Images have different sizes (256x448 vs. 256x224)"),
 			)
 
 

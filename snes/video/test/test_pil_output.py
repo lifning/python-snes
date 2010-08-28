@@ -108,6 +108,20 @@ class TestImageComparison(unittest.TestCase):
 				"Images have different sizes (2x2 vs. 3x2)",
 			)
 
+	def test_double_width_upscaling(self):
+		"""
+		If one image is exactly twice the width of the other, it is upscaled.
+		"""
+		imageA = self._make_test_image(width=2, height=2)
+		imageB = self._make_test_image(width=4, height=3)
+
+		self.assertEqual(
+				pil_output.image_difference(imageA, imageB),
+				# Note that the first image is described as "4x2" even though
+				# it was created as 2x2.
+				"Images have different sizes (4x2 vs. 4x3)",
+			)
+
 	def test_different_image_content(self):
 		"""
 		Images with different content are detected as different.
