@@ -72,10 +72,15 @@ def image_difference(imageA, imageB):
 				imageB.size[0], imageB.size[1],
 			)
 
-	# If images have different values for any particular pixel, they're
-	# different. As well as testing for difference, we also compute a map of
-	# exactly where they're different.
-	diffFound = False
+	# Before we start pixel-poking, let's let Python figure out whether there's
+	# any image differences.
+	imageAstr = imageA.tostring()
+	imageBstr = imageB.tostring()
+
+	if imageAstr == imageBstr:
+		return None
+
+	# We know these images are different, we just have to figure out where.
 	diffMap = Image.new("1", imageA.size)
 
 	pixelsA = imageA.load()
@@ -86,15 +91,11 @@ def image_difference(imageA, imageB):
 	for y in xrange(height):
 		for x in xrange(width):
 			if pixelsA[x,y] != pixelsB[x,y]:
-				diffFound = True
 				pixelsDiff[x,y] = 1
 			else:
 				pixelsDiff[x,y] = 0
 
-	if diffFound:
-		return diffMap
-
-	return None
+	return diffMap
 
 def describe_difference(imageA, imageB):
 	"""
