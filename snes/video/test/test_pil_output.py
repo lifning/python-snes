@@ -84,6 +84,11 @@ class TestImageComparison(unittest.TestCase):
 				None,
 			)
 
+		self.assertEqual(
+				pil_output.describe_difference(imageA, imageB),
+				None,
+			)
+
 	def test_different_modes(self):
 		"""
 		Images with different modes are detected as different.
@@ -93,6 +98,11 @@ class TestImageComparison(unittest.TestCase):
 
 		self.assertEqual(
 				pil_output.image_difference(imageA, imageB),
+				"Images have different modes ('RGB' vs. 'RGBX')",
+			)
+
+		self.assertEqual(
+				pil_output.describe_difference(imageA, imageB),
 				"Images have different modes ('RGB' vs. 'RGBX')",
 			)
 
@@ -108,6 +118,11 @@ class TestImageComparison(unittest.TestCase):
 				"Images have different sizes (2x2 vs. 3x2)",
 			)
 
+		self.assertEqual(
+				pil_output.describe_difference(imageA, imageB),
+				"Images have different sizes (2x2 vs. 3x2)",
+			)
+
 	def test_double_width_upscaling(self):
 		"""
 		If one image is exactly twice the width of the other, it is upscaled.
@@ -119,6 +134,11 @@ class TestImageComparison(unittest.TestCase):
 				pil_output.image_difference(imageA, imageB),
 				# Note that the first image is described as "4x2" even though
 				# it was created as 2x2.
+				"Images have different sizes (4x2 vs. 4x3)",
+			)
+
+		self.assertEqual(
+				pil_output.describe_difference(imageA, imageB),
 				"Images have different sizes (4x2 vs. 4x3)",
 			)
 
@@ -144,6 +164,10 @@ class TestImageComparison(unittest.TestCase):
 				0, 1,
 				0, 0,
 			])
+
+		description = pil_output.describe_difference(imageA, imageB)
+		self.assertTrue(description.startswith("Image differences found."),
+				"Unexpected description: %r" % (description,))
 
 
 if __name__ == "__main__":

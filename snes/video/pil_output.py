@@ -2,6 +2,8 @@
 Python Imaging Library (PIL) output for SNES Video.
 """
 
+from tempfile import mkdtemp
+import os.path
 from PIL import Image
 from snes.util import snes_framebuffer_to_RGB888
 
@@ -93,3 +95,47 @@ def image_difference(imageA, imageB):
 		return diffMap
 
 	return None
+
+def describe_difference(imageA, imageB):
+	"""
+	Describe the differences (if any) between two images.
+
+	"imageA" and "imageB" should be PIL Image objects.
+
+	If the images are identical, returns None.
+
+	If the images differ in any way, returns a string describing the
+	differences. In situations where image_difference() would return a string,
+	this function returns the same string. In situations where
+	image_difference() would return a difference map image, this function
+	saves imageA, imageB and the difference map to a newly created directory,
+	and returns a string that describes their filenames.
+	"""
+	difference = image_difference(imageA, imageB)
+
+	if difference is None:
+		# No differences.
+		return
+
+	if isinstance(difference, Image.Image):
+		# Save the comparators and result so that we can examine them at
+		# our leisure.
+		outputdir = mkdtemp()
+		actual_name = os.path.join(outputdir, "actual.bmp")
+		expected_name = os.path.join(outputdir, "expected.bmp")
+		difference_name = os.path.join(outputdir, "difference.bmp")
+
+		imageA.save(actual_name)
+		imageB.save(expected_name)
+		difference.save(difference_name)
+
+		# Replace the difference image with a message that test runners can
+		# display.
+		difference = (
+				"Image differences found. Actual: %s Expected: %s "
+				"Difference: %s" % (
+					actual_name, expected_name, difference_name,
+				)
+			)
+
+	return difference

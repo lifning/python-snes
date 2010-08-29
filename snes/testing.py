@@ -32,32 +32,11 @@ class FrameTest(object):
 			self.expected_video = None
 
 	def _test_video(self, video_frame):
-		difference = pil_output.image_difference(video_frame,
+		difference = pil_output.describe_difference(video_frame,
 				self.expected_video)
 
 		if difference is None:
 			return ("video frame", True, "")
-
-		if isinstance(difference, Image.Image):
-			# Save the comparators and result so that we can examine them at
-			# our leisure.
-			outputdir = mkdtemp()
-			actual_name = os.path.join(outputdir, "actual.bmp")
-			expected_name = os.path.join(outputdir, "expected.bmp")
-			difference_name = os.path.join(outputdir, "difference.bmp")
-
-			video_frame.save(actual_name)
-			self.expected_video.save(expected_name)
-			difference.save(difference_name)
-
-			# Replace the difference image with a message that test runners can
-			# display.
-			difference = (
-					"Image differences found. Actual: %s Expected: %s "
-					"Difference: %s" % (
-						actual_name, expected_name, difference_name,
-					)
-				)
 
 		return ("video frame", False, difference)
 

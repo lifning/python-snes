@@ -3,7 +3,7 @@ import os.path
 from tempfile import mkdtemp
 from PIL import Image
 from snes import core, exceptions as EX
-from snes.video.pil_output import image_difference
+from snes.video.pil_output import describe_difference
 
 TEST_PATH = os.path.abspath(os.path.dirname(__file__))
 TEST_ROM_PATH = os.path.join(TEST_PATH, "col15", "col15.sfc")
@@ -42,32 +42,11 @@ class SNESTestCase(unittest.TestCase):
 		"""
 		Compare the given images, raise failureException if they differ.
 		"""
-		difference = image_difference(actual, expected)
+		difference = describe_difference(actual, expected)
 
 		if difference is None:
 			# No differences.
 			return
-
-		if isinstance(difference, Image.Image):
-			# Save the comparators and result so that we can examine them at
-			# our leisure.
-			outputdir = mkdtemp()
-			actual_name = os.path.join(outputdir, "actual.bmp")
-			expected_name = os.path.join(outputdir, "expected.bmp")
-			difference_name = os.path.join(outputdir, "difference.bmp")
-
-			actual.save(actual_name)
-			expected.save(expected_name)
-			difference.save(difference_name)
-
-			# Replace the difference image with a message that test runners can
-			# display.
-			difference = (
-					"Image differences found. Actual: %s Expected: %s "
-					"Difference: %s" % (
-						actual_name, expected_name, difference_name,
-					)
-				)
 
 		if message:
 			raise self.failureException("%s\n%s" % (message, difference))
