@@ -1,0 +1,72 @@
+#!/usr/bin/python
+import sys
+from itertools import izip
+import os
+from tempfile import mkstemp
+import ctypes
+from PIL import Image
+from snes.core import EmulatedSNES
+from snes.video import pil_output
+
+def iter_frames(core):
+	video_buffer = []
+
+	def video_refresh(data, width, height, hires, interlace, overscan, pitch):
+		frame_size = (pitch * 2) * height
+		frame_buf = ctypes.create_string_buffer(frame_size)
+		ctypes.memmove(frame_buf, data, frame_size)
+		# PIL's built-in 15-bit-RGB decoder actually decodes things
+		# incorrectly, but since we're only comparing the resulting images with
+		# each other, it doesn't really matter.
+		image = Image.fromstring("RGB", (width, height), frame_buf, "raw",
+				"BGR;15", pitch * 2, 1)
+
+		video_buffer.append(image)
+
+	core.set_video_refresh_cb(video_refresh)
+
+	while True:
+		core.run()
+		yield video_buffer.pop(0)
+
+
+def mktemp(suffix='', mode='r+b'):
+	fd, name = mkstemp(suffix=suffix, text=('b' not in mode))
+	res = os.fdopen(fd, mode)
+	return res, name
+
+
+try:
+	core1lib, core2lib, cartfile = sys.argv[1:]
+except ValueError:
+	print "Usage: %s <core1> <core2> <cartfile>" % (sys.argv[0],)
+	sys.exit(1)
+
+with open(cartfile, "rb") as h:
+	cartdata = h.read()
+
+print "%s " % (cartfile,),
+
+core1 = EmulatedSNES(core1lib)
+core2 = EmulatedSNES(core2lib)
+
+for core in (core1, core2):
+	core.load_cartridge_normal(cartdata)
+
+hz_refresh = core1.get_refresh_rate()
+
+max_frames = hz_refresh * 60 # one emulated minute
+
+for (core1video, core2video, framenum) in izip(
+		iter_frames(core1),
+		iter_frames(core2),
+		range(max_frames),
+	):
+
+	video_differences = pil_output.describe_difference(core1video, core2video)
+	if video_differences:
+		print "Cores produced different video at frame %d: %s" % (
+				framenum, video_differences)
+		sys.exit(1)
+
+print "OK"
