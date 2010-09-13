@@ -122,9 +122,9 @@ def describe_difference(imageA, imageB):
 		# Save the comparators and result so that we can examine them at
 		# our leisure.
 		outputdir = mkdtemp()
-		actual_name = os.path.join(outputdir, "actual.bmp")
-		expected_name = os.path.join(outputdir, "expected.bmp")
-		difference_name = os.path.join(outputdir, "difference.bmp")
+		actual_name = os.path.join(outputdir, "actual.png")
+		expected_name = os.path.join(outputdir, "expected.png")
+		difference_name = os.path.join(outputdir, "difference.png")
 
 		imageA.save(actual_name)
 		imageB.save(expected_name)
