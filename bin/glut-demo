@@ -1,0 +1,138 @@
+#!/usr/bin/python
+import sys, time
+import OpenGL
+from OpenGL.GL import *
+from OpenGL.GLU import *
+from OpenGL.GLUT import *
+from snes import core as C
+from snes.video import gl_output
+
+
+class GLUTDemo(object):
+
+	def __init__(self, argv, core):
+		self.core = core
+
+		argv = glutInit(argv)
+		if len(argv) > 2:
+			print "Usage: %s <cartname>" % (sys.argv[0],)
+			sys.exit(1)
+
+		handle = open(argv[1], "rb")
+		core.load_cartridge_normal(handle.read())
+		handle.close()
+
+		self.window = None
+		self.textureID = None
+		self.windowW = None
+		self.windowH = None
+		self.frameW = None
+		self.frameH = None
+		self.textureW = None
+		self.textureH = None
+
+		self.start = None
+		self.framecount = 0
+
+	def run(self):
+
+		glutInitDisplayMode(GLUT_RGBA)
+
+		self.window = glutCreateWindow("libsnes/python")
+
+		glutDisplayFunc(self._draw_scene)
+		glutIdleFunc(self._handle_idle)
+		glutReshapeFunc(self._handle_resize)
+		glutKeyboardFunc(self._handle_key)
+
+		glClearColor(0.0, 0.0, 0.0, 0.0)
+		glEnable(GL_TEXTURE_2D)
+
+		gl_output.set_video_refresh_cb(core, self._store_frame)
+
+		self.start = time.clock()
+		glutMainLoop()
+
+	def _store_frame(self, textureID, frameW, frameH, textureW, textureH):
+		self.textureID = textureID
+		self.frameW = frameW
+		self.frameH = frameH
+		self.textureW = textureW
+		self.textureH = textureH
+
+	def _draw_scene(self):
+		# Clear The Screen
+		glClear(GL_COLOR_BUFFER_BIT)
+		glLoadIdentity()					# Reset The View
+
+		if None in (self.textureID, self.textureW, self.textureH):
+			return
+
+		# Load our texture
+		glBindTexture(GL_TEXTURE_2D, self.textureID)
+
+		glBegin(GL_QUADS)                   # Start drawing a 4 sided polygon
+
+		# Top left
+		glTexCoord2f(0, 0)
+		glVertex3f(0, 0, 0)
+
+		# Top right
+		glTexCoord2f(self.textureW, 0.0)
+		glVertex3f(self.windowW, 0, 0.0)
+
+		# Bottom right
+		glTexCoord2f(self.textureW, self.textureH)
+		glVertex3f(self.windowW, self.windowH, 0.0)
+
+		# Bottom left
+		glTexCoord2f(0, self.textureH)
+		glVertex3f(0, self.windowH, 0.0)
+
+		glEnd()                             # We are done with the polygon
+
+		glFlush()
+
+	def _handle_key(self, key, x, y):
+		if key == '\x1b': # Escape
+			sys.exit(0)
+
+	def _handle_resize(self, width, height):
+		self.windowW = width
+		self.windowH = height
+		if width < 2:
+			width = 2
+		if height < 2:
+			height = 2
+
+		glViewport(0, 0, width, height)
+		glMatrixMode(GL_PROJECTION)
+		glLoadIdentity()
+		gluOrtho2D(0, width-1, height-1, 0)
+		glMatrixMode(GL_MODELVIEW)
+
+	def _handle_idle(self):
+		now = time.clock()
+		if now > self.start + 1:
+			fps = self.framecount / (now - self.start)
+			sys.stdout.write("FPS: %0.1f\r" % fps)
+			sys.stdout.flush()
+			self.framecount = 0
+			self.start = now
+
+		self.core.run()
+		glutPostWindowRedisplay(self.window)
+		self.framecount += 1
+
+
+
+core = None
+for libname in C.guess_library_name():
+	try:
+		core = C.EmulatedSNES(libname)
+	except OSError:
+		# Library not found
+		pass
+
+demo = GLUTDemo(sys.argv, core)
+demo.run()
