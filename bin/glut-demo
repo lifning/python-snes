@@ -5,7 +5,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 from snes import core as C
-from snes.video import gl_output
+from snes.video import gl_output, scaling
 
 
 class GLUTDemo(object):
@@ -68,6 +68,12 @@ class GLUTDemo(object):
 		if None in (self.textureID, self.textureW, self.textureH):
 			return
 
+		imageW, imageH = scaling.scale_raw(self.windowW, self.windowH,
+				self.frameW, self.frameH, True)
+
+		imageX = (self.windowW - imageW) / 2
+		imageY = (self.windowH - imageH) / 2
+
 		# Load our texture
 		glBindTexture(GL_TEXTURE_2D, self.textureID)
 
@@ -75,19 +81,19 @@ class GLUTDemo(object):
 
 		# Top left
 		glTexCoord2f(0, 0)
-		glVertex3f(0, 0, 0)
+		glVertex3f(imageX, imageY, 0.0)
 
 		# Top right
 		glTexCoord2f(self.textureW, 0.0)
-		glVertex3f(self.windowW, 0, 0.0)
+		glVertex3f(imageX+imageW, imageY, 0.0)
 
 		# Bottom right
 		glTexCoord2f(self.textureW, self.textureH)
-		glVertex3f(self.windowW, self.windowH, 0.0)
+		glVertex3f(imageX+imageW, imageY+imageH, 0.0)
 
 		# Bottom left
 		glTexCoord2f(0, self.textureH)
-		glVertex3f(0, self.windowH, 0.0)
+		glVertex3f(imageX, imageY+imageH, 0.0)
 
 		glEnd()                             # We are done with the polygon
 
