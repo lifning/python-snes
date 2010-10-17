@@ -4,9 +4,12 @@ Things to implement in python-snes:
  - Replace the ctypes-based _snes_wrapper with a real C extension. Partially
    for simplicity, partially for the learning experience partially to include
    a fast 16-to-32-bit video converter.
- - Check whether we can load the 'supergameboy' library before loading an SGB cart.
+ - Check whether we can load the 'supergameboy' library before loading an SGB
+   cart.
  - Standardize API docs to refer to one 16-bit int as a 'sample', a left and
    right pair as a 'stereo sample', and reserve 'frame' for video output.
+ - Modern libsnes doesn't necessarily reset controllers at every power-on.
+   Update the docs.
 
 Things to check:
  - Currently, the input_poll callback is called every frame, but the
