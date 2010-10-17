@@ -73,9 +73,14 @@ class GLUTDemo(object):
 
 		imageX = (self.windowW - imageW) / 2
 		imageY = (self.windowH - imageH) / 2
+		imageW -= 1
+		imageH -= 1
 
 		# Load our texture
 		glBindTexture(GL_TEXTURE_2D, self.textureID)
+
+		glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+		glTexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
 
 		glBegin(GL_QUADS)                   # Start drawing a 4 sided polygon
 
