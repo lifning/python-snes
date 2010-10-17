@@ -38,6 +38,7 @@ class GLUTDemo(object):
 
 		glutInitDisplayMode(GLUT_RGBA)
 
+		glutInitWindowSize(scaling.SNES_WIDTH, scaling.SNES_HEIGHT)
 		self.window = glutCreateWindow("libsnes/python")
 
 		glutDisplayFunc(self._draw_scene)
