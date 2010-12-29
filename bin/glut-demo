@@ -83,21 +83,15 @@ class GLUTDemo(object):
 
 		glBegin(GL_QUADS)                   # Start drawing a 4 sided polygon
 
-		# Top left
-		glTexCoord2f(0, 0)
-		glVertex3f(imageX, imageY, 0.0)
+		# OpenGL uses texture-coordinates between 0.0 and 1.0, rather than
+		# integer texels.
+		txW = float(self.frameW) / self.textureW
+		txH = float(self.frameH) / self.textureH
 
-		# Top right
-		glTexCoord2f(self.textureW, 0.0)
-		glVertex3f(imageX+imageW, imageY, 0.0)
-
-		# Bottom right
-		glTexCoord2f(self.textureW, self.textureH)
-		glVertex3f(imageX+imageW, imageY+imageH, 0.0)
-
-		# Bottom left
-		glTexCoord2f(0, self.textureH)
-		glVertex3f(imageX, imageY+imageH, 0.0)
+		glTexCoord2f(0,   0  ); glVertex3f(imageX,        imageY,        0.0)
+		glTexCoord2f(txW, 0  ); glVertex3f(imageX+imageW, imageY,        0.0)
+		glTexCoord2f(txW, txH); glVertex3f(imageX+imageW, imageY+imageH, 0.0)
+		glTexCoord2f(0,   txH); glVertex3f(imageX,        imageY+imageH, 0.0)
 
 		glEnd()                             # We are done with the polygon
 

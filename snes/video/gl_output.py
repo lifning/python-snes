@@ -20,13 +20,10 @@ def set_video_refresh_cb(core, callback):
 		"frameH" is an integer, the height of this frame's video data in
 		pixels.
 
-		"textureW" is a float between 0 and 1 representing the horizontal
-		fraction of the texture taken up by this frame. This can be passed as
-		the first parameter to glTexCoord2f().
+		"textureW" is an integer, the width of the allocated texture in pixels.
 
-		"textureH" is a float between 0 and 1 representing the vertical
-		fraction of the texture taken up by this frame. This can be passed as
-		the second parameter to glTexCoord2f().
+		"textureH" is an integer, the height of the allocated texture in
+		pixels.
 	"""
 	# Allocate and configure our texture.
 	texture = glGenTextures(1)
@@ -48,6 +45,6 @@ def set_video_refresh_cb(core, callback):
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, pitch, height, 0, GL_BGRA,
 				GL_UNSIGNED_SHORT_1_5_5_5_REV, frame_buf)
 
-		callback(texture, width, height, float(width)/pitch, 1.0)
+		callback(texture, width, height, pitch, height)
 
 	core.set_video_refresh_cb(wrapper)
