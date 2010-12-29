@@ -74,8 +74,6 @@ class GLUTDemo(object):
 
 		imageX = (self.windowW - imageW) / 2
 		imageY = (self.windowH - imageH) / 2
-		imageW -= 1
-		imageH -= 1
 
 		# Load our texture
 		glBindTexture(GL_TEXTURE_2D, self.textureID)
@@ -112,15 +110,15 @@ class GLUTDemo(object):
 	def _handle_resize(self, width, height):
 		self.windowW = width
 		self.windowH = height
-		if width < 2:
-			width = 2
-		if height < 2:
-			height = 2
+		if width < 1:
+			width = 1
+		if height < 1:
+			height = 1
 
 		glViewport(0, 0, width, height)
 		glMatrixMode(GL_PROJECTION)
 		glLoadIdentity()
-		gluOrtho2D(0, width-1, height-1, 0)
+		gluOrtho2D(0, width, height, 0)
 		glMatrixMode(GL_MODELVIEW)
 
 	def _handle_idle(self):
