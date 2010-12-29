@@ -4,23 +4,14 @@ import OpenGL
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
+from OpenGL.GL import shaders
 from snes import core as C
 from snes.video import gl_output, scaling
-
 
 class GLUTDemo(object):
 
 	def __init__(self, argv, core):
 		self.core = core
-
-		argv = glutInit(argv)
-		if len(argv) > 2:
-			print "Usage: %s <cartname>" % (sys.argv[0],)
-			sys.exit(1)
-
-		handle = open(argv[1], "rb")
-		core.load_cartridge_normal(handle.read())
-		handle.close()
 
 		self.window = None
 		self.textureID = None
@@ -33,6 +24,31 @@ class GLUTDemo(object):
 
 		self.start = None
 		self.framecount = 0
+
+		self.programSource = None
+		self.program = None
+		self.uniformLocations = {}
+
+		argv = glutInit(argv)
+		if 2 <= len(argv) <= 3:
+			handle = open(argv[1], "rb")
+			core.load_cartridge_normal(handle.read())
+			handle.close()
+
+			if len(argv) == 3:
+				self.programSource = gl_output.load_shader_elem(argv[2])
+
+		else:
+			print "Usage: %s <cartname> [<shadername>]" % (sys.argv[0],)
+			sys.exit(1)
+
+	def _setUniform(self, name, x, y):
+		loc = glGetUniformLocation(self.program, name)
+
+		if loc < 0:
+			return
+
+		glUniform2f(loc, x, y)
 
 	def run(self):
 
@@ -50,6 +66,14 @@ class GLUTDemo(object):
 		glEnable(GL_TEXTURE_2D)
 
 		gl_output.set_video_refresh_cb(core, self._store_frame)
+
+		if self.programSource:
+			try:
+				self.program = gl_output.compile_shader_elem(
+						self.programSource)
+			except RuntimeError, e:
+				print >> sys.stderr, e.args[0]
+				sys.exit(1)
 
 		self.start = time.clock()
 		glutMainLoop()
@@ -75,6 +99,13 @@ class GLUTDemo(object):
 		imageX = (self.windowW - imageW) / 2
 		imageY = (self.windowH - imageH) / 2
 
+		if self.program is not None:
+			# If we have a shader program, use it.
+			glUseProgram(self.program)
+			self._setUniform('rubyInputSize', self.frameW, self.frameH)
+			self._setUniform('rubyOutputSize', imageW, imageH)
+			self._setUniform('rubyTextureSize', self.textureW, self.textureH)
+
 		# Load our texture
 		glBindTexture(GL_TEXTURE_2D, self.textureID)
 
@@ -96,6 +127,11 @@ class GLUTDemo(object):
 		glEnd()                             # We are done with the polygon
 
 		glFlush()
+
+		if self.program is not None:
+			# If we used a shader program, turn it off again so we don't screw
+			# up anything else.
+			glUseProgram(0)
 
 	def _handle_key(self, key, x, y):
 		if key == '\x1b': # Escape

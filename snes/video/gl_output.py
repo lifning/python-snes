@@ -4,6 +4,12 @@ PyOpenGL output for SNES video.
 from OpenGL.GL import *
 from OpenGL.raw.GL import glTexImage2D
 import ctypes
+from xml.etree import ElementTree as ET
+
+SHADER_TYPES = {
+		"vertex": OpenGL.GL.GL_VERTEX_SHADER,
+		"fragment": OpenGL.GL.GL_FRAGMENT_SHADER,
+	}
 
 def set_video_refresh_cb(core, callback):
 	"""
@@ -44,3 +50,29 @@ def set_video_refresh_cb(core, callback):
 		callback(texture, width, height, pitch, height)
 
 	core.set_video_refresh_cb(wrapper)
+
+
+def load_shader_elem(filename):
+	"""
+	Build an ElementTree representing the given XML shader file.
+	"""
+	tree = ET.parse(filename)
+	root = tree.getroot()
+
+	assert root.tag == "shader"
+	assert root.attrib.get("language") == "GLSL"
+
+	return root
+
+
+def compile_shader_elem(elem):
+	"""
+	Compile the shaders in the given ElementTree element.
+	"""
+	shaderList = [
+			shaders.compileShader(child.text,
+				SHADER_TYPES[child.tag])
+			for child in elem
+		]
+
+	return shaders.compileProgram(*shaderList)
