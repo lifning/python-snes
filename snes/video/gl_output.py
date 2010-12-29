@@ -28,10 +28,6 @@ def set_video_refresh_cb(core, callback):
 	# Allocate and configure our texture.
 	texture = glGenTextures(1)
 	glBindTexture(GL_TEXTURE_2D, texture)
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP)
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP)
 
 	def wrapper(data, width, height, hires, interlace, overscan, pitch):
 		# Load our texture
