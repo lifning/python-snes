@@ -1,0 +1,100 @@
+#!/usr/bin/env python2
+
+import sys, getopt
+import pygame
+
+from snes import core as snes_core
+from snes.video import pygame_output as pgvid
+from snes.audio import pygame_output as pgaud
+from snes.input import bsv_input as bsvinp
+
+
+# libsnes library to use by default.
+libsnes = '/usr/lib/libsnes-compatibility.so'
+if sys.platform == 'win32':  libsnes = 'snes.dll'
+
+# some stuff to initialize later
+screen = None
+soundbuf_playing = False
+
+def usage():
+	global libsnes, joymap_arg
+	return """
+Usage:
+ python {} [options] rom.sfc run.bsv
+
+  -h, --help
+   Display this help message.
+
+  -l, --libsnes
+   Specify the dynamically linked LibSNES library to use.
+   If unspecified, {} is used by default.
+
+  rom.sfc
+   The ROM file to load.  Must be specified after all options.
+
+  run.bsv
+   The BSV to load.  Must be specified after the ROM.
+""".format(sys.argv[0], libsnes, joymap_arg)
+
+
+
+# parse arguments
+try:
+	opts, args = getopt.getopt(sys.argv[1:], "hl:f:s:j:", ["help", "libsnes="])
+	if len(args) < 2:
+		raise getopt.GetoptError('Must specify ROM and BSV.')
+	for o,a in opts:
+		if o in ('-h', '--help'):
+			usage()
+			exit(0)
+		elif o in ('-l', '--libsnes'):
+			libsnes = a
+except Exception, e:
+	print str(e), usage()
+	sys.exit(1)
+
+
+
+# callback functions...
+def video_refresh(surf):
+	global screen
+	if screen is None:
+		screen = pygame.display.set_mode(surf.get_size())
+	screen.blit(surf, (0,0))
+	pygame.display.flip()
+
+def audio_sample(snd):
+	# note: simply calling snd.play() in this callback would also work.
+	# in fact, simply setting
+	#  pgaud.set_audio_sample_cb(emu, pygame.mixer.Sound.play)
+	# would work.  this code is just an attempt to reduce lag.
+	global soundbuf_playing
+	if not soundbuf_playing:
+		soundbuf_playing = True
+		snd.play(loops=-1)
+
+# pygame 'clock' used to limit to 60fps on fast computers
+clock = pygame.time.Clock()
+
+
+
+# load game and init emulator
+rom = open(args[0], 'rb').read()
+
+emu = snes_core.EmulatedSNES(libsnes)
+emu.load_cartridge_normal(rom)
+
+# register callbacks
+pgvid.set_video_refresh_cb(emu, video_refresh)
+pgaud.set_audio_sample_cb(emu, audio_sample)
+bsvinp.set_input_state_file(emu, args[1])
+
+# run each frame until closed.
+running = True
+while running:
+	emu.run()
+	clock.tick(60)
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT:
+			running = False

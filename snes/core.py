@@ -48,6 +48,13 @@ MEMORY_SUFAMI_TURBO_B_RAM = 5
 MEMORY_GAME_BOY_RAM = 6
 MEMORY_GAME_BOY_RTC = 7
 
+# Volatile memory constants
+MEMORY_WRAM   = 100
+MEMORY_APURAM = 101
+MEMORY_VRAM   = 102
+MEMORY_OAM    = 103
+MEMORY_CGRAM  = 104
+
 VALID_MEMORY_TYPES = range(8)
 
 PORT_1 = False
@@ -827,6 +834,14 @@ class EmulatedSNES(W.LowLevelWrapper):
 
 		if dmg_rtc is not None:
 			self._string_to_memory(dmg_rtc, MEMORY_GAME_BOY_RTC)
+
+	def get_library_info(self):
+		"""
+		Return the name and version numbers (major, minor) of the library.
+		"""
+		return [ self._lib.snes_library_id(),
+		         ( self._lib.snes_library_revision_major(),
+				   self._lib.snes_library_revision_minor() ) ]
 
 	def close(self):
 		"""
