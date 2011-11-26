@@ -67,7 +67,7 @@ class GLUTDemo(object):
 
 		gl_output.set_video_refresh_cb(core, self._store_frame)
 
-		if self.programSource:
+		if self.programSource is not None:
 			try:
 				self.program = gl_output.compile_shader_elem(
 						self.programSource)
