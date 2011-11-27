@@ -1,43 +1,72 @@
 """
-BSV file reading for SNES Input.
+Read SNES input from a BSNES movie file (*.BSV)
 """
+from struct import Struct, error as StructError
 
-from struct import unpack, Struct
 
-# only supports reading at the moment.
-class BSVFile:
-	def __init__(self, path, verbose=False):
-		buf = open(path, 'rb').read()
+BSV_MAGIC = 'BSV1'
+HEADER_STRUCT = Struct('<4s3I')
+RECORD_STRUCT = Struct('<H')
 
-		magic = buf[3::-1]  # curse you endianness!
-		if magic != 'BSV1': raise Exception('invalid BSV magic number: ' + magic)
 
-		(serializerVersion, cartCRC, stateSize) = unpack('<III', buf[4:16])
+class CorruptFile(Exception): pass
 
-		buf = buf[16:]
-		self.save = buf[:stateSize]
-		self.ctrlbuf = buf[stateSize:]
+class CartMismatch(Exception): pass
 
-		self.ctrlstruct = Struct('<H')
-		self.ctrlindex = 0
 
-		if verbose:
-			print magic, 'file loaded:'
-			print '  serializerVersion =', serializerVersion
-			print '  cartCRC           =', cartCRC
-			print '  stateSize         =', stateSize
+def _extract(struct, handle):
+	"""
+	Read an instance of the given structure from the given file handle.
+	"""
+	return struct.unpack(handle.read(struct.size))
 
-	def next_input(self):
-		ret = 0
-		if self.ctrlindex < len(self.ctrlbuf):
-			s = self.ctrlstruct
-			ret = s.unpack_from(self.ctrlbuf, self.ctrlindex)[0]
-			self.ctrlindex += 2
-		return ret
 
-def set_input_state_file(core, filename, restore=True):
+def bsv_decode(filenameOrHandle):
+	"""
+	Iterate the contents of the given BSV file.
+
+	filenameOrHandle should either be a string containing the path to a BSV
+	file, or a file-like object containing a BSV file.
+
+	Once we've reached the end of the input recorded in the BSV file, we just
+	yield an infinite stream of zeroes.
+	"""
+	# Get ourselves a handle to read from.
+	if isinstance(filenameOrHandle, basestring):
+		handle = open(filenameOrHandle, 'rb')
+	else:
+		handle = filenameOrHandle
+
+	# Read and sanity-check the header.
+	magic, serializerVersion, cartCRC, stateSize = \
+			_extract(HEADER_STRUCT, handle)
+
+	if magic != BSV_MAGIC:
+		raise CorruptFile("File %r has bad magic %r, expected %r"
+				% (filenameOrHandle, magic, BSV_MAGIC))
+
+	# Let our caller know the contents of the header, in case they're
+	# interested.
+	stateData = handle.read(stateSize)
+	yield (serializerVersion, cartCRC, stateData)
+
+	# Start spooling out the individual button states.
+	while True:
+		try:
+			yield _extract(RECORD_STRUCT, handle)
+		except StructError:
+			# We've hit the end of the file.
+			break
+
+	# After the end of the file, just keep yielding zeroes.
+	while True:
+		yield 0
+
+
+def set_input_state_file(core, filename, restore=True, expectedCartCRC=None):
 	"""
 	Sets the BSV file containing the log of input states.
+
 	!!! Also restores the savestate contained in the file !!!
 	!!! unless the argument 'restore' is set to False.    !!!
 
@@ -45,11 +74,18 @@ def set_input_state_file(core, filename, restore=True):
 	filename to use, rather than a function.
 	"""
 
-	bsv = BSVFile(filename)
+	generator = bsv_decode(filename)
+
 	def wrapper(port, device, index, id):
-		return bsv.next_input()
+		return generator.next()
+
+	(serializerVersion, cartCRC, saveStateData) = generator.next()
+
+	if expectedCartCRC is not None:
+		raise CartMismatch("Movie is for cart with CRC32 %r, expected %r"
+				% (cartCRC, expectedCartCRC))
 
 	if restore:
-		core.unserialize(bsv.save)
+		core.unserialize(saveStateData)
 
 	core.set_input_state_cb(wrapper)
