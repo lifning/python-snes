@@ -133,6 +133,19 @@ class TestSNESCore(util.SNESTestCase):
 				60,
 			)
 
+	def test_get_library_info(self):
+		"""
+		libsnes can identify itself with plausible info.
+		"""
+		name, (revMajor, revMinor) = self.core.get_library_info()
+
+		self.assertTrue(isinstance(name, str),
+				"Name should be string, not %r" % (name,))
+		self.assertTrue(isinstance(revMajor, long),
+				"Major revision should be int, not %r" % (revMajor,))
+		self.assertTrue(isinstance(revMinor, long),
+				"Minor revision should be int, not %r" % (revMinor,))
+
 
 if __name__ == "__main__":
 	unittest.main()
