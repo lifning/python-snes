@@ -4,7 +4,7 @@ import pygame
 
 from snes import core as C
 from snes.video import pygame_output
-from snes.audio import wav_output
+from snes.audio import wave_output
 
 core = None
 for libname in C.guess_library_name():
@@ -42,7 +42,7 @@ def paint_frame(surf):
 	framecount += 1
 
 pygame_output.set_video_refresh_cb(core, paint_frame)
-wav_output.set_audio_sample_file(core, 'test.wav')
+wave_output.set_audio_sink(core, 'test.wav')
 
 pygame.init()
 
