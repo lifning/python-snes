@@ -13,7 +13,7 @@ SNES_OUTPUT_FREQUENCY = 32040 # Hz
 # libsnes generates signed 16-bit samples, but passes them to us marked as
 # uint16 values so we need to pack them as uint16 values to avoid any
 # signed/unsigned conversions.
-SAMPLE_STRUCT = "2H"
+sndstruct = struct.Struct('<HH')
 
 
 def set_audio_sink(core, filenameOrHandle):
@@ -39,7 +39,7 @@ def set_audio_sink(core, filenameOrHandle):
 	def audio_sample(left, right):
 		# We can safely use .writeframesraw() here because the header will be
 		# corrected once we call .close()
-		res.writeframesraw(struct.pack(SAMPLE_STRUCT, left, right))
+		res.writeframesraw(sndstruct.pack(left, right))
 
 	core.set_audio_sample_cb(audio_sample)
 
