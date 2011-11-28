@@ -6,7 +6,7 @@ from struct import Struct, error as StructError
 
 BSV_MAGIC = 'BSV1'
 HEADER_STRUCT = Struct('<4s3I')
-RECORD_STRUCT = Struct('<H')
+RECORD_STRUCT = Struct('<h')
 
 
 class CorruptFile(Exception): pass
