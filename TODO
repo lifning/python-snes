@@ -1,5 +1,4 @@
 Things to implement in python-snes:
- - Implement .wav recording/testing with the wave stdlib module.
  - Add a tool to convert BSNES movie files to/from a portable SNES movie format.
  - Replace the ctypes-based _snes_wrapper with a real C extension. Partially
    for simplicity, partially for the learning experience partially to include
