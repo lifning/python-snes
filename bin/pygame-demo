@@ -3,7 +3,8 @@ import sys, time
 import pygame
 
 from snes import core as C
-from snes.video import pygame_output
+from snes.video.pygame_output import set_video_refresh_cb
+from snes.audio.pygame_output import set_audio_sample_cb
 
 core = None
 for libname in C.guess_library_name():
@@ -40,7 +41,8 @@ def paint_frame(surf):
 		start = now
 	framecount += 1
 
-pygame_output.set_video_refresh_cb(core, paint_frame)
+set_video_refresh_cb(core, paint_frame)
+set_audio_sample_cb(core)
 
 pygame.init()
 

@@ -1,8 +1,10 @@
 """
 Pygame output for SNES Video.
 """
-
 import pygame, ctypes
+
+OUTPUT_WIDTH=256
+OUTPUT_HEIGHT=239
 
 def set_video_refresh_cb(core, callback):
 	"""
@@ -18,16 +20,27 @@ def set_video_refresh_cb(core, callback):
 		convsurf = pygame.Surface(
 			(pitch, height), depth=15, masks=(0x7c00, 0x03e0, 0x001f, 0)
 		)
-		convsurf.get_buffer().write(ctypes.string_at(data,pitch*height*2), 0)
 		surf = convsurf.subsurface((0,0,width,height))
 
-		if hires or interlace:
-			if hires:      width /= 2
-			if interlace:  height /= 2
+		convsurf.get_buffer().write(ctypes.string_at(data,pitch*height*2), 0)
+
+		tryScale = False
+
+		if hires:
+			width /= 2
+			tryScale = True
+
+		if interlace:
+			height /= 2
+			tryScale = True
+
+		if tryScale:
 			try:
-				surf = pygame.transform.smoothscale(surf.convert(), (width,height))
+				surf = pygame.transform.smoothscale(surf.convert(),
+						(width,height))
 			except:
-				surf = pygame.transform.scale(surf, (width,height))
+				surf = pygame.transform.scale(surf,
+						(width,height))
 
 		callback(surf)
 
