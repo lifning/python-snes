@@ -23,22 +23,17 @@ def set_audio_sample_cb(core, callback=pygame.mixer.Sound.play):
 	snd.play() is used.
 	"""
 
-	print '0'
 	# init pygame sound.  snes freq is 32000, 16bit unsigned stereo.
 	pygame.mixer.init(
 		frequency=SNES_OUTPUT_FREQUENCY,
 		size=16, channels=2, buffer=512
 	)
 
-	print '1'
-
 	snd = pygame.sndarray.make_sound(
 			numpy.zeros( (512, 2), dtype='uint16', order='C' )
 		)
-	print '2'
 	sndbuf = snd.get_buffer()
 
-	print '3'
 	def wrapper(left, right):
 		global sndlog, sndstruct
 		sndlog += sndstruct.pack(left, right)
