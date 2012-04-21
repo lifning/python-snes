@@ -22,3 +22,9 @@ class LibraryVersionMismatch(RetroException):
 	"""
 	The library version is one we don't recognise.
 	"""
+
+# backwards-compat.  TODO: see if this actually works in try-except blocks.
+SNESException          = RetroException
+NoCartridgeLoaded      = NoGameLoaded
+CartridgeAlreadyLoaded = GameAlreadyLoaded
+
