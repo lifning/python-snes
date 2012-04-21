@@ -1,3 +1,4 @@
+import ctypes
 
 RETRO_API_VERSION = 1
 

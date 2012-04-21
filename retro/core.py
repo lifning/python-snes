@@ -127,6 +127,11 @@ class EmulatedSystem(W.LowLevelWrapper):
 		self.set_input_poll_cb(lambda: None)
 		self.set_input_state_cb(lambda *args: 0)
 
+		# some backwards-compat stuff here from libsnes...
+		self.load_cartridge_normal    = self.load_game_normal
+		self._require_cart_loaded     = self._require_game_loaded
+		self._require_cart_not_loaded = self._require_game_not_loaded
+
 	def _reload_cheats(self):
 		"""
 		Internal method.
@@ -228,7 +233,7 @@ class EmulatedSystem(W.LowLevelWrapper):
 
 			callback(data, width, height, hires, interlace, overscan, pitch)
 
-		self._video_refresh_wrapper = W.video_refresh_cb_t(wrapped_callback)
+		self._video_refresh_wrapper = W.retro_video_refresh_t(wrapped_callback)
 		self._lib.retro_set_video_refresh(self._video_refresh_wrapper)
 
 	# TODO: this callback's batch-processing cousin
@@ -244,7 +249,7 @@ class EmulatedSystem(W.LowLevelWrapper):
 
 		The callback should return nothing.
 		"""
-		self._audio_sample_wrapper = W.audio_sample_cb_t(callback)
+		self._audio_sample_wrapper = W.retro_audio_sample_t(callback)
 		self._lib.retro_set_audio_sample(self._audio_sample_wrapper)
 
 	def set_input_poll_cb(self, callback):
@@ -255,7 +260,7 @@ class EmulatedSystem(W.LowLevelWrapper):
 		just read new input events and store them somewhere so they can be
 		returned by the input state callback.
 		"""
-		self._input_poll_wrapper = W.input_poll_cb_t(callback)
+		self._input_poll_wrapper = W.retro_input_poll_t(callback)
 		self._lib.retro_set_input_poll(self._input_poll_wrapper)
 
 	def set_input_state_cb(self, callback):
@@ -297,7 +302,7 @@ class EmulatedSystem(W.LowLevelWrapper):
 
 		You are responsible for implementing any turbo-fire features, etc.
 		"""
-		self._input_state_wrapper = W.input_state_cb_t(callback)
+		self._input_state_wrapper = W.retro_input_state_t(callback)
 		self._lib.retro_set_input_state(self._input_state_wrapper)
 
 	def set_controller_port_device(self, port, device):
@@ -508,7 +513,11 @@ class EmulatedSystem(W.LowLevelWrapper):
 		"""
 		self._require_game_not_loaded()
 
-		gameinfo = retro_game_info(path, data, len(data), None)
+		gameinfo = retro_game_info(path,
+		                           ctypes.cast(data, ctypes.c_void_p),
+		                           len(data),
+		                           None)
+
 		self._lib.retro_load_game(ctypes.byref(gameinfo))
 
 		self._game_loaded = True
@@ -520,11 +529,12 @@ class EmulatedSystem(W.LowLevelWrapper):
 			self._string_to_memory(rtc, MEMORY_RTC)
 
 	def get_library_info(self):
+		# TODO: get actual info here
 		"""
 		Return the name and version numbers (major, minor) of the library.
 		WARNING: currently just reports major API version.  TODO: fix
 		"""
-		return [ self._lib.retro_api_version(), ]
+		return [ self._lib.retro_api_version() ]
 
 	def close(self):
 		"""
@@ -537,3 +547,4 @@ class EmulatedSystem(W.LowLevelWrapper):
 		W.LowLevelWrapper.close(self)
 		if self._libname in _libretro_registry:
 			_libretro_registry.remove(self._libname)
+
