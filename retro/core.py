@@ -108,7 +108,7 @@ class EmulatedSystem(W.LowLevelWrapper):
 		"""
 		Construct and return a wrapper for the given libretro library.
 
-		"libname" should be the platfrom appropriate filename of the libretro
+		"libname" should be the platform appropriate filename of the libretro
 		implementation to load. If you don't have a specific filename you want
 		to load, ask guess_library_name() for some likely choices.
 
@@ -218,6 +218,9 @@ class EmulatedSystem(W.LowLevelWrapper):
 
 		The callback should return nothing.
 		"""
+		# TODO: remove the snes-isms here?  are "hires" and "interlace"
+		#       relevant for other consoles?  (surely they're not computed
+		#       the same way)
 		def wrapped_callback(data, width, height, pitch):
 			hires = (width == 512)
 			interlace = (height == 448 or height == 478)
@@ -228,17 +231,16 @@ class EmulatedSystem(W.LowLevelWrapper):
 		self._video_refresh_wrapper = W.video_refresh_cb_t(wrapped_callback)
 		self._lib.retro_set_video_refresh(self._video_refresh_wrapper)
 
+	# TODO: this callback's batch-processing cousin
 	def set_audio_sample_cb(self, callback):
 		"""
 		Sets the callback that will handle updated audio frames.
 
 		The callback should accept the following parameters:
 
-			"left" is an integer between 0 and 65535 that specifies the volume
-			in the left audio channel.
+			"left" is an int16 that specifies the left audio channel volume.
 
-			"right" is an integer between 0 and 65535 that specifies the volume
-			in the right audio channel.
+			"right" is an int16 that specifies the right audio channel volume.
 
 		The callback should return nothing.
 		"""
@@ -271,20 +273,18 @@ class EmulatedSystem(W.LowLevelWrapper):
 
 		The callback should accept the following parameters:
 
-			"port" is one of the constants PORT_1 or PORT_2, describing which
-			controller port is being reported.
+			"port" is an int describing which controller port is being reported.
 
 			"device" is one of the DEVICE_* constants describing which type of
 			device is currently connected to the given port.
 
 			"index" is a number describing which of the devices connected to
-			the port is being reported. It's only useful for DEVICE_MULTITAP
-			and DEVICE_JUSTIFIERS - for other device types, it's always 0.
+			the port is being reported. It's only useful for
+			DEVICE_JOYPAD_MULTITAP - for other device types, it's always 0.
 
 			"id" is one of the DEVICE_ID_* constants for the given device,
 			describing which button or axis is being reported (for
-			DEVICE_MULTITAP, use the DEVICE_ID_JOYPAD_* IDs; for
-			DEVICE_JUSTIFIERS use the DEVICE_ID_JUSTIFIER_* IDs.).
+			DEVICE_JOYPAD_MULTITAP, use the DEVICE_ID_JOYPAD_* IDs).
 
 		If "id" represents an analogue input (such as DEVICE_ID_MOUSE_X and
 		DEVICE_ID_MOUSE_Y), you should return a value between -32768 and 32767.
@@ -318,10 +318,10 @@ class EmulatedSystem(W.LowLevelWrapper):
 		function any time, but for sensible operation, don't call it from
 		inside the registered input state callback.
 
-		"port" must be either the PORT_1 or PORT_2 constants, describing which
-		port the given controller will be connected to. If "port" is set to
-		"PORT_1", the "device" parameter should not be DEVICE_SUPER_SCOPE,
-		DEVICE_JUSTIFIER or DEVICE_JUSTIFIERS.
+		"port" must be an integer describing which port the given controller
+		will be connected to. If "port" is set to 1, the "device" parameter
+		should not be DEVICE_LIGHTGUN_SUPER_SCOPE, DEVICE_LIGHTGUN_JUSTIFIER or
+		DEVICE_LIGHTGUN_JUSTIFIERS.
 
 		"device" must be one of the DEVICE_* (but not DEVICE_ID_*) constants,
 		describing what kind of device will be connected to the given port.
@@ -329,39 +329,32 @@ class EmulatedSystem(W.LowLevelWrapper):
 
 			- DEVICE_NONE: No device is connected to this port. The registered
 			  input state callback will not be called for this port.
-			- DEVICE_JOYPAD: A standard SNES gamepad.
-			- DEVICE_MULTITAP: A multitap controller, which acts like
+			- DEVICE_JOYPAD: A standard SNES-like gamepad.
+			- DEVICE_MOUSE: A mouse.
+			- DEVICE_KEYBOARD: A keyboard.
+			- DEVICE_LIGHTGUN: A light-gun.
+			- DEVICE_JOYPAD_MULTITAP: A multitap controller, which acts like
 			  4 DEVICE_JOYPADs. Your input state callback will be passed "id"
 			  parameters between 0 and 3.
-			- DEVICE_MOUSE: A SNES mouse controller, as shipped with Mario
-			  Paint.
-			- DEVICE_SUPER_SCOPE: A Nintendo Super Scope light-gun device (only
-			  works properly in port 2).
-			- DEVICE_JUSTIFIER: A Konami Justifier light-gun device (only works
-			  properly in port 2).
-			- DEVICE_JUSTIFIERS: Two Konami Justifier light-gun devices,
-			  daisy-chained together (only works properly in port 2). Your
-			  input state callback will be passed "id" parameters 0 and 1.
+			- DEVICE_LIGHTGUN_SUPER_SCOPE: A Nintendo Super Scope light-gun
+			  device (only works properly in port 2).
+			- DEVICE_LIGHTGUN_JUSTIFIER: A Konami Justifier light-gun device
+			  (only works properly in port 2).
+			- DEVICE_LIGHTGUN_JUSTIFIERS: Two Konami Justifier light-gun
+			  devices, daisy-chained together (only works properly in port 2).
+			  Your input state callback will be passed "id" parameters 0 and 1.
 		"""
-		self._lib.snes_set_controller_port_device(port, device)
+		self._lib.retro_set_controller_port_device(port, device)
 
-	def power(self):
-		"""
-		Turn the emulated SNES off and back on.
-
-		Requires that a game be loaded.
-		"""
-		self._require_game_loaded()
-		self._lib.snes_power()
 
 	def reset(self):
 		"""
-		Press the front-panel Reset button on the emulated SNES.
+		Press the reset button on the emulated console.
 
 		Requires that a game be loaded.
 		"""
 		self._require_game_loaded()
-		self._lib.snes_reset()
+		self._lib.retro_reset()
 
 	def run(self):
 		"""
@@ -407,7 +400,7 @@ class EmulatedSystem(W.LowLevelWrapper):
 		the loaded game was designed for a 50Hz region (PAL territories)
 		or a 60Hz region (NTSC territories, and Brazil's PAL60).
 		"""
-		region = self._lib.snes_get_region()
+		region = self._lib.retro_get_region()
 		if region == False:
 			# NTSC, or PAL60
 			return 60
@@ -417,7 +410,7 @@ class EmulatedSystem(W.LowLevelWrapper):
 
 	def serialize(self):
 		"""
-		Serializes the state of the emulated SNES to a string.
+		Serializes the state of the emulated console to a string.
 
 		This serialized data can be handed to unserialize() at a later time to
 		resume emulation from this point.
@@ -433,7 +426,7 @@ class EmulatedSystem(W.LowLevelWrapper):
 
 	def unserialize(self, state):
 		"""
-		Restores the state of the emulated SNES from a string.
+		Restores the state of the emulated console from a string.
 
 		Note that the game's SRAM data is part of the saved state.
 
@@ -493,12 +486,17 @@ class EmulatedSystem(W.LowLevelWrapper):
 		_, enabled = self._loaded_cheats[index]
 		return enabled
 
-	def load_game_normal(self, data, sram=None, rtc=None):
+	def load_game_normal(self, data, sram=None, rtc=None, path=None):
+		# TODO: accept path xor data rather than always requiring data
+		# TODO: check retro_system_info for fullpath and raise exception
+		#       if not provided.
 		"""
 		Load an ordinary game into the emulated console.
 
 		"data" must be a string containing the uncompressed, de-interleaved,
-		headerless ROM image.
+		headerless game image.
+
+		"path" should be a string containing the file path to the game.
 
 		"sram" should be a string containing the SRAM data saved from the
 		previous session. If not supplied or None, the game will be given
@@ -510,17 +508,16 @@ class EmulatedSystem(W.LowLevelWrapper):
 		"""
 		self._require_game_not_loaded()
 
-		self._lib.retro_load_game(
-				mapping, ctypes.cast(data, W.data_p), len(data),
-			)
+		gameinfo = retro_game_info(path, data, len(data), None)
+		self._lib.retro_load_game(ctypes.byref(gameinfo))
 
 		self._game_loaded = True
 
 		if sram is not None:
-			self._string_to_memory(sram, MEMORY_CARTRIDGE_RAM)
+			self._string_to_memory(sram, MEMORY_SAVE_RAM)
 
 		if rtc is not None:
-			self._string_to_memory(rtc, MEMORY_CARTRIDGE_RTC)
+			self._string_to_memory(rtc, MEMORY_RTC)
 
 	def get_library_info(self):
 		"""
