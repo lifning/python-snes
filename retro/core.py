@@ -534,6 +534,10 @@ class EmulatedSystem(W.LowLevelWrapper):
 		Return the name and version numbers (major, minor) of the library.
 		WARNING: currently just reports major API version.  TODO: fix
 		"""
+
+		#libinfo = retro_system_info()
+		#self._lib.retro_system_info(ctypes.byref(libinfo))
+
 		return [ self._lib.retro_api_version() ]
 
 	def close(self):
@@ -548,3 +552,4 @@ class EmulatedSystem(W.LowLevelWrapper):
 		if self._libname in _libretro_registry:
 			_libretro_registry.remove(self._libname)
 
+EmulatedSNES = EmulatedSystem

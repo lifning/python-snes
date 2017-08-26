@@ -23,6 +23,10 @@ def set_audio_sample_cb(core, callback=pygame.mixer.Sound.play):
 	snd.play() is used.
 	"""
 
+	# HACK: pygame 1.9.3 seems to have removed Sound.get_buffer()...
+	core.set_audio_sample_cb(lambda *args: None)
+	return
+
 	# init pygame sound.  snes freq is 32000, 16bit unsigned stereo.
 	pygame.mixer.init(
 		frequency=SNES_OUTPUT_FREQUENCY,

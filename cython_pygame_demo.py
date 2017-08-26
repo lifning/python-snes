@@ -2,17 +2,21 @@
 import sys, time
 import pygame
 
-from retro import core as C
-from retro.video.pygame_output import set_video_refresh_cb
-from retro.audio.pygame_output import set_audio_sample_cb
+from snes import core as C
+from snes.audio.pygame_output import set_audio_sample_cb
+import pyximport
+pyximport.install()
+try:
+	from snes.video.pygame_output_cy import get_video_refresh_surf
+except:
+	sys.exit(1)
 
 framecount = 0.0
 start = time.clock()
 screen = None
 
 def main():
-	core = C.EmulatedSystem('lib/libretro-085-bsnes-compat-x86_64.dll')
-	#core = C.EmulatedSystem('/usr/lib/libretro/libretro-bsnes-compat.so')
+	core = C.EmulatedSNES('/usr/lib/libsnes/libsnes-snes9x.so')
 	game_path = sys.argv[1]
 
 	with open(game_path, "rb") as handle:
@@ -36,7 +40,7 @@ def main():
 			start = now
 		framecount += 1
 
-	set_video_refresh_cb(core, paint_frame)
+	snes_screen = get_video_refresh_surf(core)
 	set_audio_sample_cb(core)
 
 	pygame.init()
@@ -45,6 +49,8 @@ def main():
 	running = True
 	while running:
 		core.run()
+		print 'ran'
+		screen.blit(snes_screen, (0,0))
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				running = False

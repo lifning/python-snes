@@ -2,17 +2,16 @@
 import sys, time
 import pygame
 
-from retro import core as C
-from retro.video.pygame_output import set_video_refresh_cb
-from retro.audio.pygame_output import set_audio_sample_cb
+from snes import core as C
+from snes.video.pygame_output import set_video_refresh_cb
+from snes.audio.pygame_output import set_audio_sample_cb
 
 framecount = 0.0
 start = time.clock()
 screen = None
 
 def main():
-	core = C.EmulatedSystem('lib/libretro-085-bsnes-compat-x86_64.dll')
-	#core = C.EmulatedSystem('/usr/lib/libretro/libretro-bsnes-compat.so')
+	core = C.EmulatedSNES('/usr/lib/libsnes/libsnes-snes9x.so')
 	game_path = sys.argv[1]
 
 	with open(game_path, "rb") as handle:
